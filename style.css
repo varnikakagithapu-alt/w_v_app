@@ -35,4 +35,62 @@ button {
 
 button:hover {
   background-color: #1a5dc9;
+<<<<<<< HEAD
+=======
+}
+body {
+font-family: Arial;
+margin:0;
+padding:10px;
+background:#eef2f7;
+}
+
+.container {
+max-width:450px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+text-align:center;
+}
+
+input, select, textarea {
+width:100%;
+padding:10px;
+margin:8px 0;
+font-size:16px;
+}
+
+button {
+width:100%;
+padding:10px;
+margin:5px 0;
+font-size:16px;
+cursor:pointer;
+}
+
+.hidden { display:none; }
+
+#visualOutput {
+margin-top:10px;
+font-weight:bold;
+}
+
+.suggestion-btn {
+background:#dbeafe;
+border:none;
+padding:8px;
+margin:5px 0;
+width:100%;
+cursor:pointer;
+}
+
+.dark {
+background:#121212;
+color:white;
+}
+
+.dark .container {
+background:#1e1e1e;
+>>>>>>> 56ee8ac4c84e7b7dc8b57cb34093605602f66972
 }
