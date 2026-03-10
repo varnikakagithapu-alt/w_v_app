@@ -1,0 +1,129 @@
+<link rel="manifest" href="manifest.json">
+<!DOCTYPE html>
+<html>
+<head>
+<title>Inclusive App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Welcome to Inclusive App</h1>
+<p>This is my web application.</p>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+<body>
+  <h1>Inclusive App</h1>
+  <p>Helping everyone communicate better.</p>
+
+  <input type="text" id="userInput" placeholder="Type your message here">
+
+  <button onclick="showMessage()">Show Message</button>
+
+  <p id="output"></p>
+
+  <script src="script.js"></script>
+</body>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inclusive Communication App</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="container">
+<h2>Login</h2>
+<input type="text" id="name" placeholder="Name">
+<input type="number" id="age" placeholder="Age">
+<input type="text" id="study" placeholder="Education">
+<select id="disability">
+<option value="None">None</option>
+<option value="Hearing Impaired">Hearing Impaired</option>
+<option value="Speech Impaired">Speech Impaired</option>
+</select>
+<button onclick="startApp()">Enter App</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="container hidden">
+
+<h2 id="welcomeText"></h2>
+
+<button onclick="toggleDarkMode()">Dark Mode</button>
+<button onclick="openProfile()">Profile</button>
+<button onclick="openDashboard()">Dashboard</button>
+<button onclick="logout()">Logout</button>
+
+<label>Select Language:</label>
+<select id="languageSelect"></select>
+
+<textarea id="textInput" placeholder="Type message..."
+oninput="generateSuggestions()"></textarea>
+
+<label>Speech Speed:</label>
+<input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
+
+<button onclick="speakText()">Speak</button>
+<button onclick="clearText()">Clear</button>
+
+<h3>AI Suggestions</h3>
+<div id="suggestions"></div>
+
+<h3>Set Reminder</h3>
+<input type="number" id="reminderMinutes" placeholder="Minutes">
+<button onclick="setReminder()">Set Reminder</button>
+
+<p id="visualOutput"></p>
+
+</div>
+
+<!-- PROFILE PAGE -->
+<div id="profilePage" class="container hidden">
+<h2>User Profile</h2>
+<p>Name: <span id="profileName"></span></p>
+<p>Age: <span id="profileAge"></span></p>
+<p>Education: <span id="profileStudy"></span></p>
+<p>Disability: <span id="profileDisability"></span></p>
+<button onclick="goBack()">Back</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardPage" class="container hidden">
+<h2>Analytics Dashboard</h2>
+<p>Total Messages: <span id="dashboardMessages"></span></p>
+<p>Total Reminders: <span id="dashboardReminders"></span></p>
+<p>Last Language: <span id="dashboardLanguage"></span></p>
+<button onclick="goBackFromDashboard()">Back</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+<body>
+
+<h1>Inclusive App</h1>
+<p>Helping everyone communicate better.</p>
+
+<input type="text" id="userInput" placeholder="Type or speak your message">
+
+<br><br>
+
+<button onclick="showMessage()">Show Message</button>
+
+<button onclick="startSpeech()">🎤 Speak</button>
+
+<p id="output"></p>
+
+<script src="script.js"></script>
+
+</body>
+<button onclick="startSpeech()">🎤 Speak</button>
+<link rel="manifest" href="manifest.json">
