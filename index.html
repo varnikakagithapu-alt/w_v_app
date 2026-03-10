@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inclusive Communication App</title>
+
+<style>
+body{
+font-family: Arial;
+margin:0;
+padding:0;
+text-align:center;
+background:#f5f5f5;
+}
+
+.dark{
+background:#121212;
+color:white;
+}
+
+.hidden{
+display:none;
+}
+
+.container{
+padding:20px;
+}
+
+input,select,button{
+padding:10px;
+margin:10px;
+font-size:16px;
+}
+
+button{
+cursor:pointer;
+background:#4CAF50;
+color:white;
+border:none;
+border-radius:5px;
+}
+
+button:hover{
+background:#45a049;
+}
+
+#visualOutput{
+font-size:20px;
+margin-top:20px;
+font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="container">
+
+<h2>Inclusive Communication App</h2>
+
+<input id="name" placeholder="Enter Name"><br>
+
+<input id="age" placeholder="Enter Age"><br>
+
+<input id="study" placeholder="Education"><br>
+
+<input id="disability" placeholder="Disability Type"><br>
+
+<button onclick="startApp()">Start</button>
+
+</div>
+
+
+<!-- MAIN APP -->
+<div id="mainApp" class="container hidden">
+
+<h2 id="welcomeText"></h2>
+
+<input id="textInput" placeholder="Type text here">
+
+<br>
+
+<select id="languageSelect"></select>
+
+<br>
+
+<label>Speech Speed</label><br>
+
+<input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
+
+<br>
+
+<button onclick="speakText()">Speak</button>
+
+<button onclick="startSpeech()">🎤 Voice Input</button>
+
+<button onclick="clearText()">Clear</button>
+
+<br>
+
+<div id="visualOutput"></div>
+
+<br>
+
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+<button onclick="openProfile()">Profile</button>
+
+<button onclick="openDashboard()">Dashboard</button>
+
+<button onclick="logout()">Logout</button>
+
+<br><br>
+
+<h3>Reminder</h3>
+
+<input id="reminderMinutes" placeholder="Minutes">
+
+<button onclick="setReminder()">Set Reminder</button>
+
+</div>
+
+
+<!-- PROFILE PAGE -->
+<div id="profilePage" class="container hidden">
+
+<h2>Profile</h2>
+
+<p>Name: <span id="profileName"></span></p>
+
+<p>Age: <span id="profileAge"></span></p>
+
+<p>Study: <span id="profileStudy"></span></p>
+
+<p>Disability: <span id="profileDisability"></span></p>
+
+<button onclick="goBack()">Back</button>
+
+</div>
+
+
+<!-- DASHBOARD PAGE -->
+<div id="dashboardPage" class="container hidden">
+
+<h2>Dashboard</h2>
+
+<p>Messages Spoken: <span id="dashboardMessages"></span></p>
+
+<p>Reminders Set: <span id="dashboardReminders"></span></p>
+
+<p>Last Language Used: <span id="dashboardLanguage"></span></p>
+
+<button onclick="goBackFromDashboard()">Back</button>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
