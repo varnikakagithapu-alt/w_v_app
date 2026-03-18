@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Inclusive Communication App</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="container">
+
+<h2>Inclusive Communication App</h2>
+
+<input id="name" placeholder="Enter Name"><br>
+<input id="age" placeholder="Enter Age"><br>
+<input id="study" placeholder="Education"><br>
+<input id="disability" placeholder="Disability Type"><br>
+
+<button onclick="startApp()">Start</button>
+
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="container hidden">
+
+<h2 id="welcomeText"></h2>
+
+<input id="textInput" placeholder="Type text here">
+
+<br><br>
+
+<button onclick="speakText()">Speak</button>
+<button onclick="startSpeech()">🎤 Voice Input</button>
+<button onclick="clearText()">Clear</button>
+
+<br><br>
+
+<button onclick="increaseFont()">A+</button>
+<button onclick="decreaseFont()">A-</button>
+
+<br><br>
+
+<button onclick="toggleDarkMode()">Dark Mode</button>
+<button onclick="logout()">Logout</button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
