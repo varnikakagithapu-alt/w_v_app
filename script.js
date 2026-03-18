@@ -29,7 +29,7 @@ document.getElementById("welcomeText").innerText = "Welcome " + name;
 }
 
 // TEXT TO SPEECH
-function speakText(){
+async function speakText(){
 
 let text = document.getElementById("textInput").value;
 let lang = document.getElementById("languageSelect").value;
@@ -39,6 +39,49 @@ if(!text){
   return;
 }
 
+// language codes
+let langMap = {
+  "en": "en",
+  "hi": "hi",
+  "te": "te",
+  "kn": "kn",
+  "ta": "ta"
+};
+
+// speech codes
+let speechMap = {
+  "en": "en-US",
+  "hi": "hi-IN",
+  "te": "te-IN",
+  "kn": "kn-IN",
+  "ta": "ta-IN"
+};
+
+try {
+
+// translate
+let response = await fetch(
+`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langMap[lang]}&dt=t&q=${encodeURIComponent(text)}`
+);
+
+let data = await response.json();
+let translatedText = data[0][0][0];
+
+// show translation
+alert("Translated: " + translatedText);
+
+// speak translated
+let speech = new SpeechSynthesisUtterance(translatedText);
+speech.lang = speechMap[lang];
+
+window.speechSynthesis.speak(speech);
+
+} catch(error){
+  alert("Translation failed");
+  console.log(error);
+}
+
+}
 // language mapping
 let languageMap = {
   "en": "en-US",
