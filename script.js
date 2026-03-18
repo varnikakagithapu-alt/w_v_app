@@ -30,17 +30,28 @@ document.getElementById("welcomeText").innerText = "Welcome " + name;
 function speakText(){
 
 let text = document.getElementById("textInput").value;
+let lang = document.getElementById("languageSelect").value;
 
 if(!text){
-alert("Enter text");
-return;
+  alert("Enter text");
+  return;
 }
 
+// language mapping
+let languageMap = {
+  "en": "en-US",
+  "hi": "hi-IN",
+  "te": "te-IN",
+  "kn": "kn-IN",
+  "ta": "ta-IN"
+};
+
 let speech = new SpeechSynthesisUtterance(text);
-speech.lang = "en-US";
+
+// set selected language
+speech.lang = languageMap[lang] || "en-US";
 
 window.speechSynthesis.speak(speech);
-
 }
 
 // VOICE INPUT
