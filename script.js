@@ -1,5 +1,3 @@
-alert("SCRIPT LOADED");
-
 // SERVICE WORKER
 if ('serviceWorker' in navigator) {
 navigator.serviceWorker.register('service-worker.js')
@@ -15,7 +13,7 @@ let age = document.getElementById("age").value;
 let study = document.getElementById("study").value;
 
 if(!name || !age || !study){
-alert("Please fill all fields");
+document.getElementById("translatedText").innerText = "Please fill all fields";
 return;
 }
 
@@ -35,8 +33,8 @@ let text = document.getElementById("textInput").value;
 let lang = document.getElementById("languageSelect").value;
 
 if(!text){
-  alert("Enter text");
-  return;
+document.getElementById("translatedText").innerText = "Please enter text";
+return;
 }
 
 // language codes
@@ -68,17 +66,14 @@ let data = await response.json();
 let translatedText = data[0][0][0];
 
 // show translation
-alert("Translated: " + translatedText);
+document.getElementById("originalText").innerText = text;
+document.getElementById("translatedText").innerText = translatedText;
 
 // speak translated
-let speech = new SpeechSynthesisUtterance(translatedText);
-speech.lang = speechMap[lang];
 
-window.speechSynthesis.speak(speech);
-
-} catch(error){
-  alert("Translation failed");
-  console.log(error);
+catch(error){
+  document.getElementById("translatedText").innerText = "Translation failed";
+    console.log(error);
 }
 
 // language mapping
@@ -90,12 +85,10 @@ let languageMap = {
   "ta": "ta-IN"
 };
 
-let speech = new SpeechSynthesisUtterance(text);
-
-speech.lang = languageMap[lang] || "en-US";
+let speech = new SpeechSynthesisUtterance(translatedText);
+speech.lang = speechMap[lang];
 
 window.speechSynthesis.speak(speech);
-}
 
 // VOICE INPUT
 function startSpeech(){
@@ -189,12 +182,13 @@ function setReminder(){
   let minutes = document.getElementById("reminderMinutes").value;
 
   if(!minutes){
-    alert("Enter minutes");
+  document.getElementById("translatedText").innerText = "Enter minutes";
+return;
     return;
   }
 
   setTimeout(() => {
-    alert("Reminder!");
+ document.getElementById("translatedText").innerText = "Reminder!";   
   }, minutes * 60000);
 }
 
