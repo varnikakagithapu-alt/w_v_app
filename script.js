@@ -101,3 +101,59 @@ function logout(){
 location.reload();
 
 }
+
+// PROFILE PAGE
+function openProfile(){
+  document.getElementById("mainApp").style.display = "none";
+  document.getElementById("profilePage").style.display = "block";
+
+  document.getElementById("profileName").innerText = localStorage.getItem("name") || "";
+}
+
+function goBack(){
+  document.getElementById("profilePage").style.display = "none";
+  document.getElementById("mainApp").style.display = "block";
+}
+
+// DASHBOARD
+function openDashboard(){
+  document.getElementById("mainApp").style.display = "none";
+  document.getElementById("dashboardPage").style.display = "block";
+
+  document.getElementById("dashboardMessages").innerText = "0";
+  document.getElementById("dashboardReminders").innerText = "0";
+  document.getElementById("dashboardLanguage").innerText = "English";
+}
+
+function goBackFromDashboard(){
+  document.getElementById("dashboardPage").style.display = "none";
+  document.getElementById("mainApp").style.display = "block";
+}
+
+// REMINDER
+function setReminder(){
+  let minutes = document.getElementById("reminderMinutes").value;
+
+  if(!minutes){
+    alert("Enter minutes");
+    return;
+  }
+
+  setTimeout(() => {
+    alert("Reminder!");
+  }, minutes * 60000);
+}
+
+function changeLanguage(){
+  let lang = document.getElementById("uiLanguage").value;
+
+  if(lang === "hi"){
+    document.getElementById("welcomeText").innerText = "स्वागत है";
+  } 
+  else if(lang === "te"){
+    document.getElementById("welcomeText").innerText = "స్వాగతం";
+  } 
+  else {
+    document.getElementById("welcomeText").innerText = "Welcome";
+  }
+}
