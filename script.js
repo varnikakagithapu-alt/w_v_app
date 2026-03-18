@@ -81,19 +81,17 @@ window.speechSynthesis.speak(speech);
   console.log(error);
 }
 
-}
 // language mapping
 let languageMap = {
-  "en": "en-US",
-  "hi": "hi-IN",
-  "te": "te-IN",
-  "kn": "kn-IN",
-  "ta": "ta-IN"
+  "en": "en-US",
+  "hi": "hi-IN",
+  "te": "te-IN",
+  "kn": "kn-IN",
+  "ta": "ta-IN"
 };
 
 let speech = new SpeechSynthesisUtterance(text);
 
-// set selected language
 speech.lang = languageMap[lang] || "en-US";
 
 window.speechSynthesis.speak(speech);
