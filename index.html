@@ -1,74 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<h2>🌍 Inclusive Communication App</h2>
-
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
+  <title>Inclusive Communication App</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="loginPage" class="container">
+<h1>🌍 Inclusive Communication App</h1>
 
-<h2>Inclusive Communication App</h2>
-
-<input id="name" placeholder="Enter Name"><br>
-<input id="age" placeholder="Enter Age"><br>
-<input id="study" placeholder="Education"><br>
-<input id="disability" placeholder="Disability Type"><br>
-
-<button onclick="startApp()">Start</button>
-
+<!-- LOGIN -->
+<div id="loginPage">
+  <input type="text" id="name" placeholder="Enter Name"><br>
+  <input type="number" id="age" placeholder="Enter Age"><br>
+  <input type="text" id="study" placeholder="Enter Study"><br>
+  <button onclick="startApp()">Start</button>
 </div>
 
 <!-- MAIN APP -->
-<div id="mainApp" class="container hidden">
+<div id="mainApp" class="hidden">
 
-<h2 id="welcomeText"></h2>
+  <h2 id="welcomeText"></h2>
 
-<input id="textInput" placeholder="Type text here">
+  <input type="text" id="textInput" placeholder="Enter text">
 
-<br><br>
+  <div id="outputBox">
+    <p><b>English:</b> <span id="originalText"></span></p>
+    <p><b>Translated:</b> <span id="translatedText"></span></p>
+  </div>
 
-<div id="outputBox">
-  <p><b>English:</b> <span id="originalText"></span></p>
-  <p><b>Translated:</b> <span id="translatedText"></span></p>
+  <!-- SIGN LANGUAGE -->
+  <div id="signOutput">
+    <h3>Sign Language</h3>
+    <img id="signImage" width="200">
+  </div>
 
-<div id="signOutput">
-  <h3>Sign Language</h3>
-  <img id="signImage" width="200">
-</div>
+  <select id="languageSelect">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="te">Telugu</option>
+    <option value="kn">Kannada</option>
+    <option value="ta">Tamil</option>
+  </select>
 
-<select id="languageSelect">
-  <option value="en">English</option>
-  <option value="hi">Hindi</option>
-  <option value="te">Telugu</option>
-  <option value="kn">Kannada</option>
-  <option value="ta">Tamil</option>
-</select>
+  <br><br>
 
-<br><br>
-
-<button onclick="speakText()">🔊 Speak</button>
-<button onclick="startSpeech()">🎤 Voice</button>
-<button onclick="clearText()">🧹 Clear</button>
-
-<br><br>
-
-<button onclick="increaseFont()">A+</button>
-<button onclick="decreaseFont()">A-</button>
-
-<br><br>
-
-<button onclick="toggleDarkMode()">Dark Mode</button>
-<button onclick="logout()">Logout</button>
+  <button onclick="speakText()">🔊 Speak</button>
+  <button onclick="clearText()">🧹 Clear</button>
+  <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+  <button onclick="logout()">🚪 Logout</button>
 
 </div>
 

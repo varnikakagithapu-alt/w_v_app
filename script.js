@@ -1,6 +1,5 @@
 // START APP
 function startApp(){
-
   let name = document.getElementById("name").value;
   let age = document.getElementById("age").value;
   let study = document.getElementById("study").value;
@@ -10,8 +9,6 @@ function startApp(){
     return;
   }
 
-  localStorage.setItem("name", name);
-
   document.getElementById("loginPage").classList.add("hidden");
   document.getElementById("mainApp").classList.remove("hidden");
 
@@ -19,88 +16,106 @@ function startApp(){
 }
 
 
-// SPEAK + TRANSLATE + SIGN
+// TRANSLATE + SPEAK
 async function speakText(){
 
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
 
   if(!text){
-    alert("Please enter text");
+    alert("Enter text");
     return;
   }
 
   let langMap = {
-    "en": "en",
-    "hi": "hi",
-    "te": "te",
-    "kn": "kn",
-    "ta": "ta"
+    en: "en",
+    hi: "hi",
+    te: "te",
+    kn: "kn",
+    ta: "ta"
   };
 
   let speechMap = {
-    "en": "en-US",
-    "hi": "hi-IN",
-    "te": "te-IN",
-    "kn": "kn-IN",
-    "ta": "ta-IN"
+    en: "en-US",
+    hi: "hi-IN",
+    te: "te-IN",
+    kn: "kn-IN",
+    ta: "ta-IN"
   };
 
   try {
 
-    let response = await fetch(
+    let res = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langMap[lang]}&dt=t&q=${encodeURIComponent(text)}`
     );
 
-    let data = await response.json();
-    let translatedText = data[0][0][0];
+    let data = await res.json();
+    let translated = data[0][0][0];
 
     document.getElementById("originalText").innerText = text;
-    document.getElementById("translatedText").innerText = translatedText;
+    document.getElementById("translatedText").innerText = translated;
 
-    let speech = new SpeechSynthesisUtterance(translatedText);
+    // SPEAK
+    let speech = new SpeechSynthesisUtterance(translated);
     speech.lang = speechMap[lang];
     window.speechSynthesis.speak(speech);
 
     // SIGN LANGUAGE
-    let signMap = {
-      "hello": "https://upload.wikimedia.org/wikipedia/commons/4/4c/ASL_Hello.gif",
-      "thank you": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
-      "yes": "https://upload.wikimedia.org/wikipedia/commons/1/1d/ASL_Yes.gif",
-      "no": "https://upload.wikimedia.org/wikipedia/commons/0/06/ASL_No.gif"
-    };
+    playSignSequence(text);
 
-    let lowerText = text.toLowerCase().trim();
-    let found = false;
-
-    for(let word in signMap){
-      if(lowerText.includes(word)){
-        document.getElementById("signImage").src = signMap[word];
-        found = true;
-        break;
-      }
-    }
-
-    if(!found){
-      document.getElementById("signImage").src = "";
-    }
-
-  } catch(error){
-    alert("Translation failed");
-    console.log(error);
+  } catch(e){
+    alert("Error in translation");
+    console.log(e);
   }
+}
+
+
+// SIGN LANGUAGE FUNCTION
+function playSignSequence(text){
+
+  let signMap = {
+    "hello": "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif",
+    "thank": "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    "you": "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    "yes": "https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif",
+    "no": "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
+  };
+
+  let words = text.toLowerCase().split(" ");
+  let i = 0;
+
+  function showNext(){
+    if(i >= words.length) return;
+
+    let word = words[i];
+    let img = document.getElementById("signImage");
+
+    if(img){
+      img.src = signMap[word] || "";
+    }
+
+    i++;
+    setTimeout(showNext, 1500);
+  }
+
+  showNext();
 }
 
 
 // CLEAR
 function clearText(){
   document.getElementById("textInput").value = "";
+  document.getElementById("originalText").innerText = "";
+  document.getElementById("translatedText").innerText = "";
+  document.getElementById("signImage").src = "";
 }
+
 
 // DARK MODE
 function toggleDarkMode(){
   document.body.classList.toggle("dark");
 }
+
 
 // LOGOUT
 function logout(){
