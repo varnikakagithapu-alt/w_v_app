@@ -74,12 +74,12 @@ async function speakText(){
 function playSignSequence(text){
 
   let signMap = {
-    "hello": "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif",
-    "thank": "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-    "you": "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-    "yes": "https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif",
-    "no": "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
-  };
+  "hello": "https://upload.wikimedia.org/wikipedia/commons/4/4c/ASL_Hello.gif",
+  "thank": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
+  "you": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
+  "yes": "https://upload.wikimedia.org/wikipedia/commons/1/1d/ASL_Yes.gif",
+  "no": "https://upload.wikimedia.org/wikipedia/commons/0/06/ASL_No.gif"
+};
 
   let words = text.toLowerCase().split(" ");
   let i = 0;
@@ -89,6 +89,8 @@ function playSignSequence(text){
 
     let word = words[i];
     let img = document.getElementById("signImage");
+      
+    img.src = signMap[word] || "";
 
     if(img){
       img.src = signMap[word] || "";
