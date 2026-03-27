@@ -97,3 +97,13 @@ button:hover {
 .dark #outputBox {
   background: #2c2c2c;
 }
+
+#signOutput {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#signImage {
+  display: block;
+  margin: auto;
+}
