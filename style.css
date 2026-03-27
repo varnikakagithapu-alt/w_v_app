@@ -90,6 +90,20 @@ button:hover {
   transition: opacity 0.4s ease;
 }
 
+#signImage {
+  transition: all 0.4s ease;
+}
+
+#avatarBox img {
+  animation: float 2s infinite ease-in-out;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
 /* DARK MODE */
 .dark {
   background: black;
