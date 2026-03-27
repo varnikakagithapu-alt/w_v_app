@@ -69,6 +69,29 @@ let translatedText = data[0][0][0];
 document.getElementById("originalText").innerText = text;
 document.getElementById("translatedText").innerText = translatedText;
 
+// SIGN LANGUAGE IMAGE
+let signMap = {
+  "hello": "https://upload.wikimedia.org/wikipedia/commons/4/4c/ASL_Hello.gif",
+  "thank you": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
+  "yes": "https://upload.wikimedia.org/wikipedia/commons/1/1d/ASL_Yes.gif",
+  "no": "https://upload.wikimedia.org/wikipedia/commons/0/06/ASL_No.gif"
+};
+
+let lowerText = text.toLowerCase().trim(); // 🔥 important fix
+
+let found = false;
+
+for(let word in signMap){
+  if(lowerText.includes(word)){   // 🔥 works for sentences too
+    document.getElementById("signImage").src = signMap[word];
+    found = true;
+    break;
+  }
+}
+
+if(!found){
+  document.getElementById("signImage").src = "";
+}
 // speak translated
 
 catch(error){
