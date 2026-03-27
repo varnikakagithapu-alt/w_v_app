@@ -9,7 +9,7 @@
 
 <h1>🌍 Inclusive Communication App</h1>
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage">
   <input type="text" id="name" placeholder="Enter Name"><br>
   <input type="number" id="age" placeholder="Enter Age"><br>
@@ -22,19 +22,33 @@
 
   <h2 id="welcomeText"></h2>
 
+  <!-- INPUT -->
   <input type="text" id="textInput" placeholder="Enter text">
 
+  <!-- OUTPUT -->
   <div id="outputBox">
     <p><b>English:</b> <span id="originalText"></span></p>
     <p><b>Translated:</b> <span id="translatedText"></span></p>
   </div>
 
-  <!-- SIGN LANGUAGE -->
-  <div id="signOutput">
-    <h3>Sign Language</h3>
-    <img id="signImage" width="200">
+  <!-- SIGN + AVATAR SECTION -->
+  <div id="signContainer">
+
+    <!-- 👦 AVATAR -->
+    <div id="avatarBox">
+      <img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" width="120">
+      <p>Sign Assistant</p>
+    </div>
+
+    <!-- ✋ SIGN LANGUAGE -->
+    <div id="signOutput">
+      <h3>Sign Language</h3>
+      <img id="signImage" width="220">
+    </div>
+
   </div>
 
+  <!-- LANGUAGE SELECT -->
   <select id="languageSelect">
     <option value="en">English</option>
     <option value="hi">Hindi</option>
@@ -45,6 +59,7 @@
 
   <br><br>
 
+  <!-- BUTTONS -->
   <button onclick="speakText()">🔊 Speak</button>
   <button onclick="clearText()">🧹 Clear</button>
   <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
@@ -52,6 +67,7 @@
 
 </div>
 
+<!-- SCRIPT -->
 <script src="script.js"></script>
 
 </body>
