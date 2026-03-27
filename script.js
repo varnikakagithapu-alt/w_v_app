@@ -74,20 +74,38 @@ async function speakText(){
 function playSignSequence(text){
 
   let signMap = {
-  "hello": "https://upload.wikimedia.org/wikipedia/commons/4/4c/ASL_Hello.gif",
-  "thank": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
-  "you": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
-  "yes": "https://upload.wikimedia.org/wikipedia/commons/1/1d/ASL_Yes.gif",
-  "no": "https://upload.wikimedia.org/wikipedia/commons/0/06/ASL_No.gif"
-};
+    "hello": "https://upload.wikimedia.org/wikipedia/commons/4/4c/ASL_Hello.gif",
+    "thank": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
+    "you": "https://upload.wikimedia.org/wikipedia/commons/0/08/ASL_Thank_You.gif",
+    "yes": "https://upload.wikimedia.org/wikipedia/commons/1/1d/ASL_Yes.gif",
+    "no": "https://upload.wikimedia.org/wikipedia/commons/0/06/ASL_No.gif"
+  };
 
   let words = text.toLowerCase().split(" ");
   let i = 0;
+  let img = document.getElementById("signImage");
 
   function showNext(){
     if(i >= words.length) return;
 
     let word = words[i];
+
+    // 👉 CLEAR FIRST
+    img.src = "";
+
+    setTimeout(() => {
+      img.src = signMap[word] || "";
+    }, 200);
+
+    i++;
+    setTimeout(showNext, 1500);
+  }
+
+  showNext();
+}
+
+    if(i >= words.length) return;
+
     let img = document.getElementById("signImage");
       
     img.src = signMap[word] || "";
