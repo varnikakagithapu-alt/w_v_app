@@ -1,97 +1,123 @@
-/* BODY */
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
+/* RESET */
+* {
   margin: 0;
   padding: 0;
-  background: linear-gradient(to right, #667eea, #764ba2);
-  color: black;
+  box-sizing: border-box;
 }
 
-/* LOGIN PAGE */
-#loginPage {
-  margin-top: 50px;
+/* BODY */
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #141e30, #243b55);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+  color: white;
 }
 
-/* MAIN APP CARD */
-#mainApp {
-  background: #f4f4f4;
-  width: 80%;
-  max-width: 700px;
-  margin: 30px auto;
+/* CONTAINER */
+.container {
+  width: 95%;
+  max-width: 400px;
   padding: 25px;
+
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+
   border-radius: 20px;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+
+  text-align: center;
 }
 
-/* INPUTS + BUTTONS */
-input, select, button {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 10px;
+/* TITLE */
+.title {
+  font-size: 32px;
+  font-weight: bold;
+
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  -webkit-background-clip: text;
+  color: transparent;
+
+  margin-bottom: 5px;
+}
+
+/* TAGLINE */
+.tagline {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+/* INPUTS */
+input, select {
+  width: 90%;
+  padding: 12px;
+  margin: 10px 0;
+
+  border-radius: 12px;
   border: none;
+  outline: none;
+
+  background: rgba(255,255,255,0.1);
+  color: #fff;
   font-size: 14px;
 }
 
-/* BUTTON STYLE */
+/* PLACEHOLDER */
+input::placeholder {
+  color: #bbb;
+}
+
+/* SELECT OPTIONS */
+select option {
+  background: #1e1e2f;
+  color: #fff;
+}
+
+/* BUTTONS */
 button {
-  background: #5a67d8;
+  margin: 8px;
+  padding: 12px 16px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.3s;
+
+  transition: 0.3s ease;
 }
 
+/* BUTTON HOVER */
 button:hover {
-  background: #434190;
-}
-
-#mainTitle {
-  font-size: 30px;
-  font-weight: bold;
-  background: linear-gradient(to right, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-#tagline {
-  font-size: 15px;
-  color: #666;
-  font-style: italic;
-}
-
-/* HIDE ELEMENT */
-.hidden {
-  display: none;
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(102,126,234,0.6);
 }
 
 /* OUTPUT BOX */
 #outputBox {
+  background: rgba(0,0,0,0.4);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+/* SIGN LANGUAGE SECTION */
+#signOutput {
   margin-top: 20px;
-  padding: 15px;
-  background: #ddd;
-  border-radius: 10px;
 }
 
-/* SIGN + AVATAR CONTAINER */
-#signContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-
-/* AVATAR BOX */
-#avatarBox {
-  text-align: center;
-}
-
-#avatarBox img {
-  border-radius: 50%;
-  background: white;
-  padding: 10px;
-  width: 120px;
+/* SIGN TITLE */
+#signOutput h3 {
+  color: #00c6ff;
+  margin-bottom: 10px;
 }
 
 /* SIGN IMAGE */
@@ -99,35 +125,30 @@ button:hover {
   display: block;
   margin: auto;
   margin-top: 10px;
-  border-radius: 10px;
+
   width: 220px;
-  transition: opacity 0.4s ease;
+  height: auto;
+
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
 }
 
-#signImage {
-  transition: all 0.4s ease;
-}
-
-#avatarBox img {
-  animation: float 2s infinite ease-in-out;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
+/* HIDDEN CLASS */
+.hidden {
+  display: none;
 }
 
 /* DARK MODE */
 .dark {
-  background: black;
-  color: white;
+  background: #000 !important;
 }
 
-.dark #mainApp {
-  background: #222;
+/* SCROLL (if needed) */
+.container::-webkit-scrollbar {
+  width: 5px;
 }
 
-.dark #outputBox {
-  background: #333;
+.container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
 }
