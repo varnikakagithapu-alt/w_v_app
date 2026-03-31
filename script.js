@@ -30,40 +30,33 @@ async function speakText(){
 
   try {
 
-    let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
-    let data = await res.json();
+    // ✅ FIXED PROXY
+    let res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url));
 
-    console.log("DATA:", data);
+    let data = await res.json();
 
     let translated = data[0][0][0];
 
-    // SHOW TEXT
     document.getElementById("originalText").innerText = text;
     document.getElementById("translatedText").innerText = translated;
 
-    // SPEAK
     let speech = new SpeechSynthesisUtterance(translated);
     speech.lang = lang + "-IN";
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(speech);
 
-    // AVATAR ANIMATION
     let avatar = document.getElementById("avatar");
     if(avatar){
       avatar.classList.add("talking");
-
-      speech.onend = () => {
-        avatar.classList.remove("talking");
-      };
+      speech.onend = () => avatar.classList.remove("talking");
     }
 
-    // SIGN LANGUAGE
     playSignSequence(text);
 
   } catch(e) {
     console.log("ERROR:", e);
-    document.getElementById("translatedText").innerText = "⚠️ Translation failed";
+    alert("Translation not working. Try again.");
   }
 }
 
