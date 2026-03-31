@@ -72,21 +72,26 @@ function playSignSequence(text){
   };
 
   let words = text.toLowerCase().split(" ");
-  let i = 0;
   let img = document.getElementById("signImage");
 
-  function showNext(){
-    if(i >= words.length) return;
+  let filteredWords = words.filter(word => signMap[word]);
 
-    let word = words[i];
-
+  if(filteredWords.length === 0){
     img.src = "";
+    return;
+  }
 
-    setTimeout(() => {
-      img.src = signMap[word] || "";
-    }, 200);
+  let i = 0;
+
+  function showNext(){
+    if(i >= filteredWords.length) return;
+
+    let word = filteredWords[i];
+
+    img.src = signMap[word];
 
     i++;
+
     setTimeout(showNext, 1500);
   }
 
