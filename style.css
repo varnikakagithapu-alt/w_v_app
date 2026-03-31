@@ -133,11 +133,6 @@ button:hover {
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
 }
 
-/* HIDDEN CLASS */
-.hidden {
-  display: none;
-}
-
 /* DARK MODE */
 .dark {
   background: #000 !important;
