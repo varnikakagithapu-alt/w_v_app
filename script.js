@@ -18,15 +18,6 @@ function startApp(){
 // TRANSLATE + SPEAK
 async function speakText(){
 
-let avatar = document.getElementById("avatar");
-
-// START talking animation
-avatar.classList.add("talking");
-
-speech.onend = () => {
-  avatar.classList.remove("talking");
-};
-
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
 
@@ -35,69 +26,53 @@ speech.onend = () => {
     return;
   }
 
-  let langMap = {
-    en: "en",
-    hi: "hi",
-    te: "te",
-    kn: "kn",
-    ta: "ta"
-  };
-
-  let speechMap = {
-    en: "en-US",
-    hi: "hi-IN",
-    te: "te-IN",
-    kn: "kn-IN",
-    ta: "ta-IN"
-  };
-
   try {
+    let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`;
 
-    let res = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langMap[lang]}&dt=t&q=${encodeURIComponent(text)}`
-    );
+    let res = await fetch(url);
+
+    if(!res.ok){
+      throw new Error("API failed");
+    }
 
     let data = await res.json();
+
+    if(!data || !data[0]){
+      throw new Error("Invalid response");
+    }
+
     let translated = data[0][0][0];
 
+    // SHOW TEXT
     document.getElementById("originalText").innerText = text;
     document.getElementById("translatedText").innerText = translated;
 
-    // SPEAK
+    // 🔊 SPEAK
     let speech = new SpeechSynthesisUtterance(translated);
-    speech.lang = speechMap[lang];
+    speech.lang = lang + "-IN";
+    window.speechSynthesis.cancel(); // stop previous
     window.speechSynthesis.speak(speech);
 
-    // SIGN LANGUAGE
+    // 👦 AVATAR ANIMATION
+    let avatar = document.getElementById("avatar");
+    if(avatar){
+      avatar.classList.add("talking");
+
+      speech.onend = () => {
+        avatar.classList.remove("talking");
+      };
+    }
+
+    // ✋ SIGN LANGUAGE
     playSignSequence(text);
 
-    let avatar = document.getElementById("avatar");
-
-function showNext(){
-  if(i >= words.length) return;
-
-  let word = words[i];
-
-  img.src = signMap[word] || "";
-
-  // avatar reacts
-  avatar.classList.add("talking");
-
-  setTimeout(() => {
-    avatar.classList.remove("talking");
-  }, 1000);
-
-  i++;
-  setTimeout(showNext, 1500);
-}
-
   } catch(e){
-    alert("Error in translation");
     console.log(e);
+    alert("Translation not working. Check internet.");
   }
 }
 
-// SIGN LANGUAGE FUNCTION
+// SIGN LANGUAGE FUNCTION (WORD BY WORD)
 function playSignSequence(text){
 
   let signMap = {
@@ -117,7 +92,7 @@ function playSignSequence(text){
 
     let word = words[i];
 
-    // CLEAR FIRST
+    // clear image first
     img.src = "";
 
     setTimeout(() => {
