@@ -133,6 +133,20 @@ button:hover {
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
 }
 
+#textInput {
+  width: 60%;
+  padding: 10px;
+  margin: 10px;
+}
+
+button {
+  margin: 8px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
 /* DARK MODE */
 .dark {
   background: #000 !important;
