@@ -95,7 +95,8 @@ function playSignSequence(text){
 
 // CLEAR
 function clearText(){
-  document.getElementById("textInput").value = "";
+  document.getElementById("textInput").value = speechText;
+  speakText(); // auto translate + speak
   document.getElementById("originalText").innerText = "";
   document.getElementById("translatedText").innerText = "";
   document.getElementById("signImage").src = "";
