@@ -26,26 +26,37 @@ async function speakText(){
     return;
   }
 
-  try {
+   try {
 
-    let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`;
+  let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`;
 
-let res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
+  // 🔥 USE PROXY (IMPORTANT)
+  let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
 
-let data = await res.json();
-let json = JSON.parse(data.contents);
+  let data = await res.json();
 
-let translated = json[0][0][0];
+  console.log("DATA:", data);
 
-    // SHOW TEXT
-    document.getElementById("originalText").innerText = text;
-    document.getElementById("translatedText").innerText = translated;
+  let translated = data[0][0][0];
 
-    // 🔊 SPEAK
-    let speech = new SpeechSynthesisUtterance(translated);
-    speech.lang = lang + "-IN";
-    window.speechSynthesis.cancel(); // stop previous
-    window.speechSynthesis.speak(speech);
+  // SHOW TEXT
+  document.getElementById("originalText").innerText = text;
+  document.getElementById("translatedText").innerText = translated;
+
+  // SPEAK
+  let speech = new SpeechSynthesisUtterance(translated);
+  speech.lang = lang + "-IN";
+  window.speechSynthesis.speak(speech);
+
+  // SIGN
+  playSignSequence(text);
+
+} catch(e){
+  console.log("ERROR:", e);
+
+  // ❌ REMOVE ALERT (it was misleading you)
+  document.getElementById("translatedText").innerText = "⚠️ Translation failed";
+}
 
     // 👦 AVATAR ANIMATION
     let avatar = document.getElementById("avatar");
