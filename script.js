@@ -111,3 +111,29 @@ function toggleDarkMode(){
 function logout(){
   location.reload();
 }
+
+// 🎤 VOICE INPUT FUNCTION
+function startListening(){
+
+  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+  recognition.lang = "en-US";
+  recognition.start();
+
+  recognition.onstart = () => {
+    console.log("Listening...");
+  };
+
+  recognition.onresult = (event) => {
+    let transcript = event.results[0][0].transcript;
+    console.log("You said:", transcript);
+
+    // Put voice text into input box
+    document.getElementById("textInput").value = transcript;
+  };
+
+  recognition.onerror = (event) => {
+    console.log("Error:", event.error);
+    alert("Mic not working. Allow microphone permission.");
+  };
+}
