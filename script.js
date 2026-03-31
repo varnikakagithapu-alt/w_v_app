@@ -18,6 +18,15 @@ function startApp(){
 // TRANSLATE + SPEAK
 async function speakText(){
 
+let avatar = document.getElementById("avatar");
+
+// START talking animation
+avatar.classList.add("talking");
+
+speech.onend = () => {
+  avatar.classList.remove("talking");
+};
+
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
 
@@ -61,6 +70,26 @@ async function speakText(){
 
     // SIGN LANGUAGE
     playSignSequence(text);
+
+    let avatar = document.getElementById("avatar");
+
+function showNext(){
+  if(i >= words.length) return;
+
+  let word = words[i];
+
+  img.src = signMap[word] || "";
+
+  // avatar reacts
+  avatar.classList.add("talking");
+
+  setTimeout(() => {
+    avatar.classList.remove("talking");
+  }, 1000);
+
+  i++;
+  setTimeout(showNext, 1500);
+}
 
   } catch(e){
     alert("Error in translation");

@@ -5,7 +5,7 @@
 
   <h1 class="title">🤟 SignAI</h1>
   <p class="tagline">Smart Voice → Text → Sign Translation</p>
-
+  <div class="container fade-in slide-up"></div>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
@@ -48,6 +48,22 @@
       <p>Sign Assistant</p>
     </div>
 
+    #avatarBox {
+  margin-top: 20px;
+}
+
+#avatar {
+  width: 120px;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+/* TALKING EFFECT */
+.talking {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
     <!-- ✋ SIGN LANGUAGE -->
     <div id="signOutput">
   <h3>🤟 Sign Language Output</h3>
@@ -68,6 +84,7 @@
   <br><br>
 
   <!-- BUTTONS -->
+  <button onclick="startApp()">🚀 Start</button>
   <button onclick="speakText()">🔊 Speak</button>
   <button onclick="clearText()">🧹 Clear</button>
   <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
