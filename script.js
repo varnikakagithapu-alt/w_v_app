@@ -27,20 +27,16 @@ async function speakText(){
   }
 
   try {
+
     let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`;
-    
-   alert(translated);
 
-   let data = await res.json();
-console.log("API DATA:", data);
+let res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
 
-let translated = "";
+let data = await res.json();
+let json = JSON.parse(data.contents);
 
-if(data && data[0] && data[0][0] && data[0][0][0]){
-  translated = data[0][0][0];
-} else {
-  translated = text; // fallback
-}
+let translated = json[0][0][0];
+
     // SHOW TEXT
     document.getElementById("originalText").innerText = text;
     document.getElementById("translatedText").innerText = translated;
