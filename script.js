@@ -16,7 +16,7 @@ function startApp(){
 }
 
 // TRANSLATE + SPEAK
-  async function speakText(){
+async function speakText(){
 
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
@@ -31,7 +31,6 @@ function startApp(){
   try {
 
     let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
-
     let data = await res.json();
 
     console.log("DATA:", data);
@@ -45,10 +44,11 @@ function startApp(){
     // SPEAK
     let speech = new SpeechSynthesisUtterance(translated);
     speech.lang = lang + "-IN";
+
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(speech);
 
-    // AVATAR
+    // AVATAR ANIMATION
     let avatar = document.getElementById("avatar");
     if(avatar){
       avatar.classList.add("talking");
@@ -58,7 +58,7 @@ function startApp(){
       };
     }
 
-    // SIGN
+    // SIGN LANGUAGE
     playSignSequence(text);
 
   } catch(e) {
@@ -67,27 +67,7 @@ function startApp(){
   }
 }
 
-
-    // 👦 AVATAR ANIMATION
-    let avatar = document.getElementById("avatar");
-    if(avatar){
-      avatar.classList.add("talking");
-
-      speech.onend = () => {
-        avatar.classList.remove("talking");
-      };
-    }
-
-    // ✋ SIGN LANGUAGE
-    playSignSequence(text);
-
-  } catch(e){
-    console.log(e);
-    alert("Translation not working. Check internet.");
-  }
-}
-
-// SIGN LANGUAGE FUNCTION (WORD BY WORD)
+// SIGN LANGUAGE FUNCTION
 function playSignSequence(text){
 
   let signMap = {
@@ -107,7 +87,6 @@ function playSignSequence(text){
 
     let word = words[i];
 
-    // clear image first
     img.src = "";
 
     setTimeout(() => {
