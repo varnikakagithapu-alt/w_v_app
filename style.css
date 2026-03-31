@@ -45,6 +45,20 @@ button:hover {
   background: #434190;
 }
 
+#mainTitle {
+  font-size: 30px;
+  font-weight: bold;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+#tagline {
+  font-size: 15px;
+  color: #666;
+  font-style: italic;
+}
+
 /* HIDE ELEMENT */
 .hidden {
   display: none;
