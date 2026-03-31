@@ -15,7 +15,6 @@ function startApp(){
   document.getElementById("welcomeText").innerText = "Welcome " + name;
 }
 
-
 // TRANSLATE + SPEAK
 async function speakText(){
 
@@ -69,7 +68,6 @@ async function speakText(){
   }
 }
 
-
 // SIGN LANGUAGE FUNCTION
 function playSignSequence(text){
 
@@ -90,7 +88,7 @@ function playSignSequence(text){
 
     let word = words[i];
 
-    // 👉 CLEAR FIRST
+    // CLEAR FIRST
     img.src = "";
 
     setTimeout(() => {
@@ -104,24 +102,6 @@ function playSignSequence(text){
   showNext();
 }
 
-    if(i >= words.length) return;
-
-    let img = document.getElementById("signImage");
-      
-    img.src = signMap[word] || "";
-
-    if(img){
-      img.src = signMap[word] || "";
-    }
-
-    i++;
-    setTimeout(showNext, 1500);
-  }
-
-  showNext();
-}
-
-
 // CLEAR
 function clearText(){
   document.getElementById("textInput").value = "";
@@ -130,12 +110,10 @@ function clearText(){
   document.getElementById("signImage").src = "";
 }
 
-
 // DARK MODE
 function toggleDarkMode(){
   document.body.classList.toggle("dark");
 }
-
 
 // LOGOUT
 function logout(){
