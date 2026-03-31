@@ -43,6 +43,16 @@
   <div id="signContainer">
 
     <!-- 👦 AVATAR -->
+let avatar = document.getElementById("avatar");
+
+if(avatar){
+  avatar.classList.add("talking");
+
+  speech.onend = () => {
+    avatar.classList.remove("talking");
+  };
+}
+
     <div id="avatarBox">
       <img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" width="120">
       <p>Sign Assistant</p>
@@ -68,9 +78,9 @@
     <div id="signOutput">
   <h3>🤟 Sign Language Output</h3>
   <img id="signImage" width="220">
-</div>
-
-  </div>
+ </div> id="avatarBox">
+  <img id="avatar" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png">
+ </div>
 
   <!-- LANGUAGE SELECT -->
   <select id="languageSelect">
