@@ -16,7 +16,7 @@ function startApp(){
 }
 
 // TRANSLATE + SPEAK
-async function speakText(){
+  async function speakText(){
 
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
@@ -26,37 +26,47 @@ async function speakText(){
     return;
   }
 
-   try {
-
   let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`;
 
-  // 🔥 USE PROXY (IMPORTANT)
-  let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+  try {
 
-  let data = await res.json();
+    let res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
 
-  console.log("DATA:", data);
+    let data = await res.json();
 
-  let translated = data[0][0][0];
+    console.log("DATA:", data);
 
-  // SHOW TEXT
-  document.getElementById("originalText").innerText = text;
-  document.getElementById("translatedText").innerText = translated;
+    let translated = data[0][0][0];
 
-  // SPEAK
-  let speech = new SpeechSynthesisUtterance(translated);
-  speech.lang = lang + "-IN";
-  window.speechSynthesis.speak(speech);
+    // SHOW TEXT
+    document.getElementById("originalText").innerText = text;
+    document.getElementById("translatedText").innerText = translated;
 
-  // SIGN
-  playSignSequence(text);
+    // SPEAK
+    let speech = new SpeechSynthesisUtterance(translated);
+    speech.lang = lang + "-IN";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
 
-} catch(e){
-  console.log("ERROR:", e);
+    // AVATAR
+    let avatar = document.getElementById("avatar");
+    if(avatar){
+      avatar.classList.add("talking");
 
-  // ❌ REMOVE ALERT (it was misleading you)
-  document.getElementById("translatedText").innerText = "⚠️ Translation failed";
+      speech.onend = () => {
+        avatar.classList.remove("talking");
+      };
+    }
+
+    // SIGN
+    playSignSequence(text);
+
+  } catch(e) {
+    console.log("ERROR:", e);
+    document.getElementById("translatedText").innerText = "⚠️ Translation failed";
+  }
 }
+
 
     // 👦 AVATAR ANIMATION
     let avatar = document.getElementById("avatar");
