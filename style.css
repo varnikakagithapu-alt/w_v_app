@@ -18,6 +18,12 @@ body {
   color: white;
 }
 
+#avatarContainer {
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+}
+
 /* CONTAINER */
 .container {
   width: 95%;
@@ -185,4 +191,12 @@ button {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.card {
+  background: rgba(255,255,255,0.1);
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  margin: auto;
 }

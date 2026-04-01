@@ -56,48 +56,28 @@
   <button onclick="startApp()">🚀 Start</button>
 </div>
 
-<!-- MAIN APP -->
 <div id="mainApp" class="hidden">
 
   <h2 id="welcomeText"></h2>
 
-  <!-- INPUT -->
-  <input type="text" id="textInput" placeholder="Enter text">
+  <div class="card">
 
-  <!-- MIC -->
-  <button onclick="startListening()">🎤 Speak</button>
+    <input type="text" id="textInput" placeholder="Enter text">
+    <button onclick="startListening()">🎤 Speak</button>
 
-  <br>
+    <p><b>English:</b> <span id="originalText"></span></p>
+    <p><b>Translated:</b> <span id="translatedText"></span></p>
 
-  <!-- OUTPUT -->
-  <p><b>English:</b> <span id="originalText"></span></p>
-  <p><b>Translated:</b> <span id="translatedText"></span></p>
+    <div id="avatarContainer"></div>
 
-  <!-- AVATAR -->
-  <br>
-  <div id="avatarContainer" style="width:200px; height:200px; margin:auto;"></div>
-  <!-- SIGN -->
-  <br><br>
-  <img id="signImage" width="200">
+    <img id="signImage" width="200">
 
-  <br><br>
+    <select id="languageSelect">...</select>
 
-  <!-- LANGUAGE -->
-  <select id="languageSelect">
-    <option value="en">English</option>
-    <option value="hi">Hindi</option>
-    <option value="te">Telugu</option>
-    <option value="ta">Tamil</option>
-    <option value="kn">Kannada</option>
-  </select>
+    <button onclick="speakText()">🔊 Translate</button>
+    <button onclick="clearText()">🧹 Clear</button>
 
-  <br><br>
-
-  <!-- BUTTONS -->
-  <button onclick="speakText()">🔊 Translate</button>
-  <button onclick="clearText()">🧹 Clear</button>
-  <button onclick="toggleDarkMode()">🌙 Dark</button>
-  <button onclick="logout()">🚪 Logout</button>
+  </div>
 
 </div>
 

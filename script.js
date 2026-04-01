@@ -175,3 +175,4 @@ function toggleDarkMode(){
 function logout(){
   location.reload();
 }
+
