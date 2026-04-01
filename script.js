@@ -1,11 +1,9 @@
 // START APP
 function startApp(){
   let name = document.getElementById("name").value;
-  let age = document.getElementById("age").value;
-  let study = document.getElementById("study").value;
 
-  if(!name || !age || !study){
-    alert("Please fill all fields");
+  if(!name){
+    alert("Enter name");
     return;
   }
 
@@ -15,9 +13,25 @@ function startApp(){
   document.getElementById("welcomeText").innerText = "Welcome " + name;
 }
 
-// TRANSLATE + SPEAK
-  
-   async function speakText(){
+
+// 🎤 VOICE INPUT
+function startListening(){
+
+  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+  recognition.lang = "en-IN";
+
+  recognition.onresult = function(event){
+    let text = event.results[0][0].transcript;
+    document.getElementById("textInput").value = text;
+  };
+
+  recognition.start();
+}
+
+
+// 🌍 TRANSLATE + SPEAK
+async function speakText(){
 
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
@@ -32,70 +46,39 @@ function startApp(){
   try {
 
     let res = await fetch(url);
-    let textData = await res.text();
-
-    let data;
-    try {
-      data = JSON.parse(textData);
-    } catch {
-      document.getElementById("translatedText").innerText = "⚠️ Translation failed";
-      return;
-    }
+    let data = await res.json();
 
     let translated = data[0][0][0];
 
     document.getElementById("originalText").innerText = text;
     document.getElementById("translatedText").innerText = translated;
 
+    // 🔊 SPEAK
     let speech = new SpeechSynthesisUtterance(translated);
     speech.lang = lang + "-IN";
     window.speechSynthesis.speak(speech);
 
-    playSignSequence(text);
-
-  } catch(e){
-    console.log("ERROR:", e);
-  }
-}
-
-  document.getElementById("translatedText").innerText = "⚠️ Translation error";
-  return;
-}
-
-    let translated = data[0][0][0];
-
-    document.getElementById("originalText").innerText = text;
-    document.getElementById("translatedText").innerText = translated;
-
-    let speech = new SpeechSynthesisUtterance(translated);
-    let speechMap = {
-  en: "en-US",
-  hi: "hi-IN",
-  te: "te-IN",
-  ta: "ta-IN",
-  kn: "kn-IN"
-};
-
-speech.lang = speechMap[lang] || "en-US";
-
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(speech);
-
+    // 👦 AVATAR ANIMATION
     let avatar = document.getElementById("avatar");
     if(avatar){
       avatar.classList.add("talking");
-      speech.onend = () => avatar.classList.remove("talking");
+
+      speech.onend = () => {
+        avatar.classList.remove("talking");
+      };
     }
 
+    // 🤟 SIGN
     playSignSequence(text);
 
-  } catch(e) {
-    console.log("ERROR:", e);
-    alert("Translation not working. Try again.");
+  } catch(e){
+    console.log(e);
+    alert("Translation failed");
   }
 }
 
-// SIGN LANGUAGE FUNCTION
+
+// 🤟 SIGN LANGUAGE
 function playSignSequence(text){
 
   let signMap = {
@@ -109,22 +92,14 @@ function playSignSequence(text){
   let words = text.toLowerCase().split(" ");
   let img = document.getElementById("signImage");
 
-  let filteredWords = words.filter(word => signMap[word]);
-
-  if(filteredWords.length === 0){
-    img.src = "";
-    return;
-  }
+  let filtered = words.filter(w => signMap[w]);
 
   let i = 0;
 
   function showNext(){
-    if(i >= filteredWords.length) return;
+    if(i >= filtered.length) return;
 
-    let word = filteredWords[i];
-
-    img.src = signMap[word];
-
+    img.src = signMap[filtered[i]];
     i++;
 
     setTimeout(showNext, 1500);
@@ -133,35 +108,23 @@ function playSignSequence(text){
   showNext();
 }
 
+
 // CLEAR
 function clearText(){
-  document.getElementById("textInput").value = speechText;
-  speakText(); // auto translate + speak
+  document.getElementById("textInput").value = "";
   document.getElementById("originalText").innerText = "";
   document.getElementById("translatedText").innerText = "";
   document.getElementById("signImage").src = "";
 }
+
 
 // DARK MODE
 function toggleDarkMode(){
   document.body.classList.toggle("dark");
 }
 
+
 // LOGOUT
 function logout(){
   location.reload();
-}
-
-// 🎤 VOICE INPUT FUNCTION
-function startListening(){
-  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-
-  recognition.lang = "en-IN";
-
-  recognition.onresult = function(event){
-    let text = event.results[0][0].transcript;
-    document.getElementById("textInput").value = text;
-  };
-
-  recognition.start();
 }
