@@ -6,69 +6,63 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* BODY BACKGROUND */
+/* BODY */
 body {
   height: 100vh;
   background: linear-gradient(135deg, #5f9cff, #7b4bb7);
   color: white;
+}
+
+/* MAIN LAYOUT (LEFT + RIGHT) */
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100vh;
+  padding: 50px;
+}
+
+/* LEFT SIDE */
+.left {
+  width: 50%;
+}
+
+.left h1 {
+  font-size: 40px;
+}
+
+.left p {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+/* RIGHT SIDE CARD */
+.right {
+  width: 50%;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
-/* HIDDEN CLASS */
-.hidden {
-  display: none;
-}
-
-/* LOGIN PAGE */
-#loginPage {
-  text-align: center;
-}
-
-#loginPage input {
-  padding: 10px;
-  margin: 10px;
-  border-radius: 10px;
-  border: none;
-  width: 200px;
-}
-
-#loginPage button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  background: #ff7a18;
-  color: white;
-  cursor: pointer;
-}
-
-/* MAIN APP */
-#mainApp {
-  text-align: center;
-}
-
-/* CARD UI */
+/* CARD */
 .card {
   background: rgba(255, 255, 255, 0.1);
-  padding: 25px;
+  padding: 30px;
   border-radius: 20px;
-  width: 320px;
-  margin: auto;
+  width: 350px;
   text-align: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 
 /* INPUT */
 input {
-  padding: 10px;
+  padding: 12px;
   border-radius: 10px;
   border: none;
-  width: 80%;
+  width: 100%;
   margin-top: 10px;
 }
 
-/* BUTTONS */
+/* BUTTON */
 button {
   padding: 10px 15px;
   border: none;
@@ -76,7 +70,7 @@ button {
   background: #ff7a18;
   color: white;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 12px;
   transition: 0.3s;
 }
 
@@ -84,37 +78,28 @@ button:hover {
   background: #ff914d;
 }
 
-/* TEXT OUTPUT */
+/* TEXT */
 p {
   margin: 10px 0;
-  color: white;
 }
 
-input, button, select {
-  margin-top: 10px;
-}
-
-/* DROPDOWN */
+/* DROPDOWN (FIXED CENTER) */
 select {
+  width: 100%;
   color: white;
   background: rgba(255,255,255,0.2);
   padding: 10px;
   border-radius: 10px;
   border: none;
-  }
-
-p {
-  color: white;
-  margin: 10px 0;
+  margin-top: 15px;
+  text-align: center;
 }
 
-/* AVATAR CONTAINER */
+/* AVATAR */
 #avatarContainer {
-  display: block;
-  margin: 0 auto;
+  margin-top: 20px;
 }
 
-/* CENTER CANVAS */
 #avatarContainer canvas {
   display: block;
   margin: 0 auto;
