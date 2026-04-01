@@ -56,45 +56,52 @@
   <button onclick="startApp()">🚀 Start</button>
 </div>
 
+<!-- MAIN APP -->
 <div id="mainApp" class="hidden">
 
   <h2 id="welcomeText"></h2>
 
-  <div class="card">
+  <!-- INPUT -->
+  <input type="text" id="textInput" placeholder="Enter text">
 
-    <input type="text" id="textInput" placeholder="Enter text">
-    <button onclick="startListening()">🎤 Speak</button>
+  <!-- MIC -->
+  <button onclick="startListening()">🎤 Speak</button>
 
-    <p><b>English:</b> <span id="originalText"></span></p>
-    <p><b>Translated:</b> <span id="translatedText"></span></p>
+  <br>
 
-    <div class="container">
+  <!-- OUTPUT -->
+  <p><b>English:</b> <span id="originalText"></span></p>
+  <p><b>Translated:</b> <span id="translatedText"></span></p>
 
-  <div class="left">
-    <h1>🤟 SignAI</h1>
-    <p>Smart Voice → Text → Sign Translation</p>
-  </div>
+  <!-- AVATAR -->
+  <br>
+  <img id="avatar" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png">
 
-  <div class="right">
-    <div class="card">
-      <!-- ALL YOUR INPUTS + BUTTONS HERE -->
-    </div>
-  </div>
+  <!-- SIGN -->
+  <br><br>
+  <img id="signImage" width="200">
+
+  <br><br>
+
+  <!-- LANGUAGE -->
+  <select id="languageSelect">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="te">Telugu</option>
+    <option value="ta">Tamil</option>
+    <option value="kn">Kannada</option>
+  </select>
+
+  <br><br>
+
+  <!-- BUTTONS -->
+  <button onclick="speakText()">🔊 Translate</button>
+  <button onclick="clearText()">🧹 Clear</button>
+  <button onclick="toggleDarkMode()">🌙 Dark</button>
+  <button onclick="logout()">🚪 Logout</button>
 
 </div>
 
-    <img id="signImage" width="200">
-
-    <select id="languageSelect">...</select>
-
-    <button onclick="speakText()">🔊 Translate</button>
-    <button onclick="clearText()">🧹 Clear</button>
-
-  </div>
-
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="script.js"></script>
 
 </body>
