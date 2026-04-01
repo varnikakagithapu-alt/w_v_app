@@ -16,7 +16,8 @@ function startApp(){
 }
 
 // TRANSLATE + SPEAK
-async function speakText(){
+  
+   async function speakText(){
 
   let text = document.getElementById("textInput").value;
   let lang = document.getElementById("languageSelect").value;
@@ -30,10 +31,36 @@ async function speakText(){
 
   try {
 
-    // ✅ FIXED PROXY
-    let res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url));
+    let res = await fetch(url);
+    let textData = await res.text();
 
-    let data = await res.json();
+    let data;
+    try {
+      data = JSON.parse(textData);
+    } catch {
+      document.getElementById("translatedText").innerText = "⚠️ Translation failed";
+      return;
+    }
+
+    let translated = data[0][0][0];
+
+    document.getElementById("originalText").innerText = text;
+    document.getElementById("translatedText").innerText = translated;
+
+    let speech = new SpeechSynthesisUtterance(translated);
+    speech.lang = lang + "-IN";
+    window.speechSynthesis.speak(speech);
+
+    playSignSequence(text);
+
+  } catch(e){
+    console.log("ERROR:", e);
+  }
+}
+
+  document.getElementById("translatedText").innerText = "⚠️ Translation error";
+  return;
+}
 
     let translated = data[0][0][0];
 
