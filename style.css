@@ -90,6 +90,10 @@ p {
   color: white;
 }
 
+input, button, select {
+  margin-top: 10px;
+}
+
 /* DROPDOWN */
 select {
   color: white;
@@ -97,12 +101,17 @@ select {
   padding: 10px;
   border-radius: 10px;
   border: none;
-  margin-top: 10px;
+  }
+
+p {
+  color: white;
+  margin: 10px 0;
 }
 
 /* AVATAR CONTAINER */
 #avatarContainer {
-  margin-top: 20px;
+  display: block;
+  margin: 0 auto;
 }
 
 /* CENTER CANVAS */
