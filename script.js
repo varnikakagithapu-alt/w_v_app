@@ -1,11 +1,11 @@
 // START APP
 function startApp(){
-
-  initAvatar();
   let name = document.getElementById("name").value;
+  let age = document.getElementById("age").value;
+  let study = document.getElementById("study").value;
 
-  if(!name){
-    alert("Enter name");
+  if(!name || !age || !study){
+    alert("Please fill all fields");
     return;
   }
 
@@ -14,7 +14,6 @@ function startApp(){
 
   document.getElementById("welcomeText").innerText = "Welcome " + name;
 }
-
 
 // 🎤 VOICE INPUT
 function startListening(){
