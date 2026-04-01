@@ -1,5 +1,7 @@
 // START APP
 function startApp(){
+
+  initAvatar();
   let name = document.getElementById("name").value;
 
   if(!name){
@@ -58,15 +60,12 @@ async function speakText(){
     speech.lang = lang + "-IN";
     window.speechSynthesis.speak(speech);
 
-    // 👦 AVATAR ANIMATION
-    let avatar = document.getElementById("avatar");
-    if(avatar){
-      avatar.classList.add("talking");
+   animateTalking(true);
 
-      speech.onend = () => {
-        avatar.classList.remove("talking");
-      };
-    }
+speech.onend = () => {
+  animateTalking(false);
+};
+
 
     // 🤟 SIGN
     playSignSequence(text);
@@ -77,6 +76,54 @@ async function speakText(){
   }
 }
 
+// INIT 3D AVATAR
+function initAvatar(){
+
+  let container = document.getElementById("avatarContainer");
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  camera.position.z = 3;
+
+  renderer = new THREE.WebGLRenderer({ alpha: true });
+  renderer.setSize(200, 200);
+  container.appendChild(renderer.domElement);
+
+  let geometry = new THREE.SphereGeometry(1, 32, 32);
+  let material = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
+
+  avatarMesh = new THREE.Mesh(geometry, material);
+  scene.add(avatarMesh);
+
+  let light = new THREE.PointLight(0xffffff, 1);
+  light.position.set(5,5,5);
+  scene.add(light);
+
+  animate();
+}
+
+// LOOP
+function animate(){
+  requestAnimationFrame(animate);
+
+  if(avatarMesh){
+    avatarMesh.rotation.y += 0.01;
+  }
+
+  renderer.render(scene, camera);
+}
+
+function animateTalking(isTalking){
+
+  if(!avatarMesh) return;
+
+  if(isTalking){
+    avatarMesh.scale.set(1.2,1.2,1.2);
+  } else {
+    avatarMesh.scale.set(1,1,1);
+  }
+}
 
 // 🤟 SIGN LANGUAGE
 function playSignSequence(text){
