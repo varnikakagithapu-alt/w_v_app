@@ -41,7 +41,15 @@ async function speakText(){
     document.getElementById("translatedText").innerText = translated;
 
     let speech = new SpeechSynthesisUtterance(translated);
-    speech.lang = lang + "-IN";
+    let speechMap = {
+  en: "en-US",
+  hi: "hi-IN",
+  te: "te-IN",
+  ta: "ta-IN",
+  kn: "kn-IN"
+};
+
+speech.lang = speechMap[lang] || "en-US";
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(speech);
