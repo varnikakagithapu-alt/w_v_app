@@ -10,8 +10,9 @@
 body {
   height: 100vh;
   background: linear-gradient(135deg, #5f9cff, #7b4bb7);
-  color: white;
+  color: black;
 }
+
 
 /* MAIN LAYOUT (LEFT + RIGHT) */
 .container {
@@ -86,13 +87,13 @@ p {
 /* DROPDOWN (FIXED CENTER) */
 select {
   width: 100%;
-  color: white;
-  background: rgba(255,255,255,0.2);
   padding: 10px;
   border-radius: 10px;
   border: none;
   margin-top: 15px;
-  text-align: center;
+
+  background: white;     /* 👈 FIX */
+  color: black;          /* 👈 FIX */
 }
 
 /* AVATAR */
