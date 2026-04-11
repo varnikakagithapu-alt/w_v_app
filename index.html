@@ -6,6 +6,10 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
+  <!-- Three.js r128 (same version as your threejs-start project) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -31,7 +35,8 @@
       color: white;
     }
 
-    #avatar {
+    /* OLD static avatar image — now hidden */
+    #avatarImg {
       width: 120px;
       border-radius: 50%;
       transition: 0.3s;
@@ -39,6 +44,30 @@
 
     .talking {
       transform: scale(1.1);
+    }
+
+    /* NEW 3D avatar container */
+    #avatar-container {
+      width: 320px;
+      height: 400px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #1a1a2e;
+      position: relative;
+    }
+
+    #avatar-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Status label shown below 3D avatar */
+    #avatarStatus {
+      font-size: 13px;
+      margin-top: 6px;
+      opacity: 0.8;
+      min-height: 20px;
     }
   </style>
 </head>
@@ -48,12 +77,11 @@
 <h1>🤟 SignAI</h1>
 <p>Smart Voice → Text → Sign Translation</p>
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage">
   <input type="text" id="name" placeholder="Enter Name"><br>
   <input type="number" id="age" placeholder="Enter Age"><br>
   <input type="text" id="study" placeholder="Enter Study"><br>
-  
   <button onclick="startApp()">🚀 Start</button>
 </div>
 
@@ -62,29 +90,27 @@
 
   <h2 id="welcomeText"></h2>
 
-  <!-- INPUT -->
+  <!-- TEXT INPUT -->
   <input type="text" id="textInput" placeholder="Enter text">
 
-  <!-- MIC -->
+  <!-- MIC BUTTON -->
   <button onclick="startListening()">🎤 Speak</button>
 
   <br>
 
-  <!-- OUTPUT -->
+  <!-- TRANSLATION OUTPUT -->
   <p><b>English:</b> <span id="originalText"></span></p>
   <p><b>Translated:</b> <span id="translatedText"></span></p>
 
-  <!-- AVATAR -->
+  <!-- 3D AVATAR (replaces the old static PNG) -->
+  <div id="avatar-container">
+    <!-- Three.js canvas is injected here by script.js -->
+  </div>
+  <div id="avatarStatus">Loading 3D avatar...</div>
+
   <br>
-  <img id="avatar" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png">
 
-  <!-- SIGN -->
-  <br><br>
-  <img id="signImage" width="200">
-
-  <br><br>
-
-  <!-- LANGUAGE -->
+  <!-- LANGUAGE SELECT -->
   <select id="languageSelect">
     <option value="en">English</option>
     <option value="hi">Hindi</option>
@@ -95,7 +121,7 @@
 
   <br><br>
 
-  <!-- BUTTONS -->
+  <!-- ACTION BUTTONS -->
   <button onclick="speakText()">🔊 Translate</button>
   <button onclick="clearText()">🧹 Clear</button>
   <button onclick="toggleDarkMode()">🌙 Dark</button>
