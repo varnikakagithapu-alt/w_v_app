@@ -70,13 +70,22 @@ function initThreeJS() {
 
       mixer = new THREE.AnimationMixer(avatar);
 
-      gltf.animations.forEach(function(clip) {
-        clips[clip.name]   = clip;
-        actions[clip.name] = mixer.clipAction(clip);
-      });
+// Print all built-in animation names to console
+    console.log('Built-in animations:');
+    gltf.animations.forEach(function(clip) {
+      console.log(' -', clip.name);
+      clips[clip.name]   = clip;
+      actions[clip.name] = mixer.clipAction(clip);
+    });
 
-      setAvatarStatus('Avatar ready! Loading gestures...');
-      avatarReady = true;
+    avatarReady = true;
+    setAvatarStatus('Avatar ready!');
+
+// Play first animation as idle
+    if (gltf.animations.length > 0) {
+      playAnimation(gltf.animations[0].name);
+      setAvatarStatus('Ready! Built-in animations loaded.');
+    }
 
       loadGestureClip('animations/idle.glb',   'idle',   true);
       loadGestureClip('animations/hello.glb',  'hello',  false);
@@ -275,7 +284,7 @@ async function speakText() {
     document.getElementById("translatedText").innerText = "(translation unavailable)";
     playSignSequence(text);
   }
-}                                         // ← this was the missing bracket!
+}                                       // ← this was the missing bracket!
 
 function playSignSequence(text) {
   signSentence(text);
