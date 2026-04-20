@@ -12,8 +12,6 @@ var actions       = {};
 var currentAction = null;
 var avatarReady   = false;
 
-// Word → animation filename mapping
-// Add more words here as you add more .glb files
 var gestureMap = {
   'hello':     'hello',
   'hi':        'hello',
@@ -37,27 +35,22 @@ function initThreeJS() {
   var container = document.getElementById('avatar-container');
   if (!container) return;
 
-  // Scene
   threeScene = new THREE.Scene();
   threeScene.background = new THREE.Color(0x1a1a2e);
 
-  // Camera
   threeCamera = new THREE.PerspectiveCamera(
     60,
     container.offsetWidth / container.offsetHeight,
     0.1,
     100
   );
-
   threeCamera.position.set(0, 1.5, 3.5);
 
-  // Renderer — injected into avatar-container div
   threeRenderer = new THREE.WebGLRenderer({ antialias: true });
   threeRenderer.setSize(container.offsetWidth, container.offsetHeight);
   threeRenderer.setPixelRatio(window.devicePixelRatio);
   container.appendChild(threeRenderer.domElement);
 
-  // Lighting
   var hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
   threeScene.add(hemi);
 
@@ -65,9 +58,7 @@ function initThreeJS() {
   dirLight.position.set(1, 2, 3);
   threeScene.add(dirLight);
 
-  // Load avatar
   var loader = new THREE.GLTFLoader();
-
   setAvatarStatus('Loading avatar...');
 
   loader.load(
@@ -77,10 +68,8 @@ function initThreeJS() {
       threeScene.add(avatar);
       avatar.position.set(0, -1, 0);
 
-      // Create mixer
       mixer = new THREE.AnimationMixer(avatar);
 
-      // Register any animations already embedded in avatar.glb
       gltf.animations.forEach(function(clip) {
         clips[clip.name]   = clip;
         actions[clip.name] = mixer.clipAction(clip);
@@ -89,8 +78,6 @@ function initThreeJS() {
       setAvatarStatus('Avatar ready! Loading gestures...');
       avatarReady = true;
 
-      // Load gesture animations
-      // Make sure these files exist in your animations/ folder
       loadGestureClip('animations/idle.glb',   'idle',   true);
       loadGestureClip('animations/hello.glb',  'hello',  false);
       loadGestureClip('animations/thanks.glb', 'thanks', false);
@@ -107,7 +94,6 @@ function initThreeJS() {
     }
   );
 
-  // Render loop
   function renderLoop() {
     requestAnimationFrame(renderLoop);
     var delta = clock.getDelta();
@@ -164,12 +150,10 @@ function playAnimation(name, fadeDuration) {
   currentAction = next;
 }
 
-// Signs one word, calls onDone when finished
 function signWord(word, onDone) {
   var clipName = gestureMap[word.toLowerCase().trim()];
 
   if (!clipName || !actions[clipName]) {
-    // No gesture for this word — just wait briefly and move on
     setTimeout(onDone, 400);
     return;
   }
@@ -190,7 +174,6 @@ function signWord(word, onDone) {
   mixer.addEventListener('finished', onFinished);
 }
 
-// Signs all words in a sentence, one after another
 function signSentence(text) {
   if (!avatarReady || !mixer) {
     console.warn('Avatar not ready yet');
@@ -220,10 +203,9 @@ function setAvatarStatus(msg) {
 }
 
 // ═══════════════════════════════════════════════
-// YOUR ORIGINAL APP LOGIC (unchanged below)
+// APP LOGIC
 // ═══════════════════════════════════════════════
 
-// START APP
 function startApp() {
   var name  = document.getElementById("name").value;
   var age   = document.getElementById("age").value;
@@ -238,13 +220,11 @@ function startApp() {
   document.getElementById("mainApp").classList.remove("hidden");
   document.getElementById("welcomeText").innerText = "Welcome " + name + "!";
 
-  // Small delay to ensure the container is visible before Three.js initializes
   setTimeout(function() {
     initThreeJS();
   }, 100);
 }
 
-// VOICE INPUT
 function startListening() {
   var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-IN";
@@ -256,7 +236,6 @@ function startListening() {
   recognition.start();
 }
 
-// TRANSLATE + SPEAK
 async function speakText() {
   var text = document.getElementById("textInput").value;
   var lang = document.getElementById("languageSelect").value;
@@ -266,57 +245,53 @@ async function speakText() {
     return;
   }
 
-  // If English selected, no translation needed
+  // English — no translation needed
   if (lang === "en") {
-    document.getElementById("originalText").innerText  = text;
+    document.getElementById("originalText").innerText   = text;
     document.getElementById("translatedText").innerText = text;
     playSignSequence(text);
     return;
   }
-  
+
   var url = 'https://lingva.ml/api/v1/en/' + lang + '/' + encodeURIComponent(text);
 
-try {
-  var res  = await fetch(url);
-  var json = await res.json();
-  var translated = json.translation;
+  try {
+    var res        = await fetch(url);
+    var json       = await res.json();
+    var translated = json.translation;
 
-  document.getElementById("originalText").innerText  = text;
-  document.getElementById("translatedText").innerText = translated;
+    document.getElementById("originalText").innerText   = text;
+    document.getElementById("translatedText").innerText = translated;
 
-  var speech = new SpeechSynthesisUtterance(translated);
-  speech.lang = lang + "-IN";
-  window.speechSynthesis.speak(speech);
+    var speech = new SpeechSynthesisUtterance(translated);
+    speech.lang = lang + "-IN";
+    window.speechSynthesis.speak(speech);
 
-  playSignSequence(text);
+    playSignSequence(text);
 
-} catch(e) {
-  console.log("Translation error:", e);
-  document.getElementById("originalText").innerText = text;
-  document.getElementById("translatedText").innerText = "(translation unavailable)";
-  playSignSequence(text);
-}
+  } catch(e) {
+    console.log("Translation error:", e);
+    document.getElementById("originalText").innerText   = text;
+    document.getElementById("translatedText").innerText = "(translation unavailable)";
+    playSignSequence(text);
+  }
+}                                         // ← this was the missing bracket!
 
-// SIGN SEQUENCE — now drives the 3D avatar
 function playSignSequence(text) {
-  // This now uses the 3D avatar instead of GIF images
   signSentence(text);
 }
 
-// CLEAR
 function clearText() {
-  document.getElementById("textInput").value       = "";
-  document.getElementById("originalText").innerText  = "";
+  document.getElementById("textInput").value          = "";
+  document.getElementById("originalText").innerText   = "";
   document.getElementById("translatedText").innerText = "";
   setAvatarStatus('Cleared.');
 }
 
-// DARK MODE
 function toggleDarkMode() {
   document.body.classList.toggle("dark");
 }
 
-// LOGOUT
 function logout() {
   location.reload();
 }
