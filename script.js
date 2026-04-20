@@ -238,8 +238,10 @@ function startApp() {
   document.getElementById("mainApp").classList.remove("hidden");
   document.getElementById("welcomeText").innerText = "Welcome " + name + "!";
 
-  // Initialize 3D avatar now that the container is visible
-  initThreeJS();
+  // Small delay to ensure the container is visible before Three.js initializes
+  setTimeout(function() {
+    initThreeJS();
+  }, 100);
 }
 
 // VOICE INPUT
