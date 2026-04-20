@@ -48,7 +48,8 @@ function initThreeJS() {
     0.1,
     100
   );
-  threeCamera.position.set(0, 1.2, 2.5);
+
+  threeCamera.position.set(0, 1.5, 3.5);
 
   // Renderer — injected into avatar-container div
   threeRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -270,33 +271,28 @@ async function speakText() {
     playSignSequence(text);
     return;
   }
+  
+  var url = 'https://lingva.ml/api/v1/en/' + lang + '/' + encodeURIComponent(text);
 
-  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' +
-            lang + '&dt=t&q=' + encodeURIComponent(text);
+try {
+  var res  = await fetch(url);
+  var json = await res.json();
+  var translated = json.translation;
 
-  try {
-    var res  = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
-    var json = await res.json();
-    var data = JSON.parse(json.contents);
-    var translated = data[0][0][0];
+  document.getElementById("originalText").innerText  = text;
+  document.getElementById("translatedText").innerText = translated;
 
-    document.getElementById("originalText").innerText  = text;
-    document.getElementById("translatedText").innerText = translated;
+  var speech = new SpeechSynthesisUtterance(translated);
+  speech.lang = lang + "-IN";
+  window.speechSynthesis.speak(speech);
 
-    var speech = new SpeechSynthesisUtterance(translated);
-    speech.lang = lang + "-IN";
-    window.speechSynthesis.speak(speech);
+  playSignSequence(text);
 
-    playSignSequence(text);
-
-  } catch(e) {
-    console.log("Translation error:", e);
-
-    // Fallback — still sign even if translation fails
-    document.getElementById("originalText").innerText = text;
-    document.getElementById("translatedText").innerText = "(translation unavailable)";
-    playSignSequence(text);
-  }
+} catch(e) {
+  console.log("Translation error:", e);
+  document.getElementById("originalText").innerText = text;
+  document.getElementById("translatedText").innerText = "(translation unavailable)";
+  playSignSequence(text);
 }
 
 // SIGN SEQUENCE — now drives the 3D avatar
