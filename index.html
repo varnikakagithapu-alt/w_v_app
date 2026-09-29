@@ -1,135 +1,143 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>🤟 SignAI</title>
-
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-  <!-- Three.js r128 (same version as your threejs-start project) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
-
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      text-align: center;
-      background: linear-gradient(to right, #667eea, #764ba2);
-      color: white;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    input, select, button {
-      padding: 10px;
-      margin: 8px;
-      border-radius: 8px;
-      border: none;
-    }
-
-    button {
-      cursor: pointer;
-      background: #ff7a18;
-      color: white;
-    }
-
-    /* OLD static avatar image — now hidden */
-    #avatarImg {
-      width: 120px;
-      border-radius: 50%;
-      transition: 0.3s;
-    }
-
-    .talking {
-      transform: scale(1.1);
-    }
-
-    /* NEW 3D avatar container */
-    #avatar-container {
-      width: 320px;
-      height: 400px;
-      margin: 0 auto;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #1a1a2e;
-      position: relative;
-    }
-
-    #avatar-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    /* Status label shown below 3D avatar */
-    #avatarStatus {
-      font-size: 13px;
-      margin-top: 6px;
-      opacity: 0.8;
-      min-height: 20px;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1c4ed8">
+  <title>SignBridge — ISL assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="assets/styles/main.css">
 </head>
-
 <body>
+  <main class="shell">
+    <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="practiceModeButton" type="button">Practice conversation</button></div></header>
+    <section class="hero" id="top">
+      <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Every result links to the official ISL dictionary so the signer can watch and verify the sign.</p></div>
+      <aside class="hero-card"><span class="mini-label">How it works</span><ol><li><span>1</span> Speak or type a message</li><li><span>2</span> Review the recognised text</li><li><span>3</span> Open each ISL sign video</li></ol></aside>
+    </section>
+    <section class="chat" aria-labelledby="chat-title">
+      <h2 id="chat-title" class="sr-only">SignBridge conversation</h2>
+      <div id="transcript" class="transcript">
+        <article class="msg msg-assistant" id="greetingMsg">
+          <p class="msg-greeting">Hi! Type or speak a message in English, Hindi, Telugu, Kannada, or Tamil and I'll look up matching ISL signs.</p>
+          <p class="msg-note">This conversation isn't saved — it resets if you reload or clear the chat. Every result links to the official ISLRTC dictionary to verify the sign.</p>
+        </article>
+      </div>
+      <div class="quick-chips">
+        <button type="button" data-phrase="Hello">Hello</button>
+        <button type="button" data-phrase="Thank you">Thank you</button>
+        <button type="button" data-phrase="I need help">I need help</button>
+        <button type="button" data-phrase="Please wait">Please wait</button>
+      </div>
+      <div class="composer">
+        <div class="composer-meta">
+          <label class="select-label">Input language<select id="languageSelect" aria-label="Input language"><option value="en-IN">English</option><option value="hi-IN">हिन्दी (Hindi)</option><option value="te-IN">తెలుగు (Telugu)</option><option value="kn-IN">ಕನ್ನಡ (Kannada)</option><option value="ta-IN">தமிழ் (Tamil)</option></select></label>
+          <button class="text-button" id="clearButton" type="button">Clear chat</button>
+        </div>
+        <div class="input-panel"><label class="sr-only" for="textInput">Message to show in Indian Sign Language</label><textarea id="textInput" rows="2" maxlength="280" placeholder="Type a message, for example: Hello, I need help."></textarea><div class="input-actions"><button class="button button-quiet" id="micButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="micLabel">Speak</span></button><span class="word-count" id="wordCount">0 / 280</span><button class="button button-primary" id="showButton" type="button">Send <span aria-hidden="true">→</span></button></div></div>
+        <p class="helper" id="inputStatus" aria-live="polite">You can edit speech recognition before looking up signs.</p>
+      </div>
+    </section>
+    <section class="practice" id="practiceMode" aria-labelledby="practice-title" hidden>
+      <div class="practice-head">
+        <div>
+          <p class="eyebrow">Testing mode</p>
+          <h2 id="practice-title">Practice conversation</h2>
+        </div>
+        <button class="text-button" id="practiceExitButton" type="button">Back to chat</button>
+      </div>
 
-<h1>🤟 SignAI</h1>
-<p>Smart Voice → Text → Sign Translation</p>
+      <p class="msg-disclaimer practice-disclaimer">
+        <span aria-hidden="true">i</span>
+        <span>Experimental, same-device test mode. Sign recognition only works for the 12 words below, requires you to record your own reference samples first, only reads a single held hand pose (not motion or two-handed signs), and can misread poses it hasn't seen. Manual word selection always works without the camera. See <a href="docs/SIGN_RECOGNITION.md" target="_blank" rel="noopener noreferrer">how this works and its limits</a>.</span>
+      </p>
 
-<!-- LOGIN PAGE -->
-<div id="loginPage">
-  <input type="text" id="name" placeholder="Enter Name"><br>
-  <input type="number" id="age" placeholder="Enter Age"><br>
-  <input type="text" id="study" placeholder="Enter Study"><br>
-  <button onclick="startApp()">🚀 Start</button>
-</div>
+      <div class="practice-camera-row">
+        <div class="video-wrap" id="videoWrap" hidden>
+          <video id="sharedCameraVideo" autoplay muted playsinline></video>
+          <canvas id="landmarkOverlay"></canvas>
+        </div>
+        <div class="practice-controls">
+          <div class="radiogroup" id="activePanelToggle" role="radiogroup" aria-label="Active camera panel">
+            <button type="button" class="button button-quiet is-active" id="toggleU1" data-panel="u1" role="radio" aria-checked="true">U1 camera active</button>
+            <button type="button" class="button button-quiet" id="toggleU2" data-panel="u2" role="radio" aria-checked="false">U2 camera active</button>
+          </div>
+          <button class="button button-quiet" id="calibrateButton" type="button">Record my signs</button>
+          <span class="helper" id="calibrationStatus">Calibrated: 0 / 12 words</span>
+        </div>
+      </div>
 
-<!-- MAIN APP -->
-<div id="mainApp" class="hidden">
+      <div class="practice-grid">
+        <article class="practice-panel is-active" id="panelU1">
+          <div class="practice-panel-head">
+            <h3>U1 — Signing</h3>
+            <p class="panel-status" id="u1Status" aria-live="polite">Camera off. Press "U1 camera active" to start.</p>
+          </div>
+          <button class="button button-primary" id="startCameraButton" type="button">Start camera</button>
+          <div class="practice-suggestions" id="u1Suggestions"></div>
+          <label class="select-label">Or pick the word directly
+            <select id="u1ManualWordSelect">
+              <option value="">Select a word…</option>
+            </select>
+          </label>
+          <button class="button button-quiet" id="u1UseWordButton" type="button">Use this word</button>
+        </article>
 
-  <h2 id="welcomeText"></h2>
+        <article class="practice-panel" id="panelU2">
+          <div class="practice-panel-head">
+            <h3>U2 — Speaking</h3>
+            <p class="panel-status" id="u2Status" aria-live="polite">Type or speak a reply in your language.</p>
+          </div>
+          <label class="select-label">Reply language
+            <select id="u2LanguageSelect" aria-label="U2 reply language">
+              <option value="en-IN">English</option>
+              <option value="hi-IN">हिन्दी (Hindi)</option>
+              <option value="te-IN">తెలుగు (Telugu)</option>
+              <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+              <option value="ta-IN">தமிழ் (Tamil)</option>
+            </select>
+          </label>
+          <div class="input-panel">
+            <label class="sr-only" for="u2TextInput">U2 reply</label>
+            <textarea id="u2TextInput" rows="2" maxlength="280" placeholder="Type your reply…"></textarea>
+            <div class="input-actions">
+              <button class="button button-quiet" id="u2MicButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="u2MicLabel">Speak</span></button>
+              <button class="button button-primary" id="u2SendButton" type="button">Send <span aria-hidden="true">→</span></button>
+            </div>
+          </div>
+        </article>
+      </div>
 
-  <!-- TEXT INPUT -->
-  <input type="text" id="textInput" placeholder="Enter text">
+      <div class="transcript practice-transcript" id="practiceTranscript" aria-live="polite">
+        <article class="msg msg-assistant" id="practiceGreetingMsg">
+          <p class="msg-greeting">This shared log fills in as U1 signs and U2 replies, so U1 can review the words for each sign afterward.</p>
+        </article>
+      </div>
+    </section>
 
-  <!-- MIC BUTTON -->
-  <button onclick="startListening()">🎤 Speak</button>
+    <dialog id="calibrationDialog" class="calibration-dialog">
+      <div class="calibration-head">
+        <h2>Record my signs</h2>
+        <button class="text-button" id="calibrationCloseButton" type="button">Close</button>
+      </div>
+      <p class="helper">Your recordings stay on this device only. Pick a word, hold the sign steady, then capture a few samples.</p>
+      <div class="calibration-body">
+        <div class="calibration-words" id="calibrationWordList"></div>
+        <div class="calibration-capture" id="calibrationCapture" hidden>
+          <video id="calibrationVideo" autoplay muted playsinline></video>
+          <p class="calibration-progress" id="calibrationProgress">Samples captured: 0 / 5</p>
+          <button class="button button-primary" id="captureSampleButton" type="button">Hold the sign, then press Capture</button>
+        </div>
+      </div>
+    </dialog>
 
-  <br>
-
-  <!-- TRANSLATION OUTPUT -->
-  <p><b>English:</b> <span id="originalText"></span></p>
-  <p><b>Translated:</b> <span id="translatedText"></span></p>
-
-  <!-- 3D AVATAR (replaces the old static PNG) -->
-  <div id="avatar-container">
-    <!-- Three.js canvas is injected here by script.js -->
-  </div>
-  <div id="avatarStatus">Loading 3D avatar...</div>
-
-  <br>
-
-  <!-- LANGUAGE SELECT -->
-  <select id="languageSelect">
-    <option value="en">English</option>
-    <option value="hi">Hindi</option>
-    <option value="te">Telugu</option>
-    <option value="ta">Tamil</option>
-    <option value="kn">Kannada</option>
-  </select>
-
-  <br><br>
-
-  <!-- ACTION BUTTONS -->
-  <button onclick="speakText()">🔊 Translate</button>
-  <button onclick="clearText()">🧹 Clear</button>
-  <button onclick="toggleDarkMode()">🌙 Dark</button>
-  <button onclick="logout()">🚪 Logout</button>
-
-</div>
-
-<script src="script.js"></script>
-
+    <footer><p>Sign sources: <a href="https://divyangjan.depwd.gov.in/islrtc/" target="_blank" rel="noopener noreferrer">Indian Sign Language Research and Training Centre (ISLRTC)</a>. SignBridge links to the official source for sign-video verification.</p></footer>
+  </main>
+  <script src="assets/scripts/sign-library.js"></script>
+  <script type="module" src="assets/scripts/app.js"></script>
+  <script type="module" src="assets/scripts/practice.js"></script>
 </body>
 </html>
