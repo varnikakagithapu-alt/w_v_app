@@ -32,5 +32,12 @@ window.SIGN_LIBRARY = [
   { aliases: { en: ['child'], hi: ['बच्चा', 'बच्ची'], te: ['పిల్లవాడు', 'పిల్ల'], kn: ['ಮಗು'], ta: ['குழந்தை'] }, gloss: 'CHILD', category: 'People and relations', driveVideoId: '1jQAVkIz4qGy1mTJSq_wiXKyL4J_QZUI6', driveSource: 'islrtc' },
   { aliases: { en: ['clerk'], hi: ['लिपिक'], te: ['గుమాస్తా'], kn: ['ಗುಮಾಸ್ತ'], ta: ['எழுத்தர்'] }, gloss: 'CLERK', category: 'Work and education', driveVideoId: '1qw61wIhxV9boTFSsTSoznwC6qIDDc25O', driveSource: 'islrtc' },
   { aliases: { en: ['consumer'], hi: ['उपभोक्ता'], te: ['వినియోగదారుడు'], kn: ['ಗ್ರಾಹಕ'], ta: ['நுகர்வோர்'] }, gloss: 'CONSUMER', category: 'Everyday communication', driveVideoId: '1VflFyqHVhXJfnsvEFuoq3nf9ngzmNR19', driveSource: 'islrtc' },
-  { aliases: { en: ['court'], hi: ['अदालत', 'न्यायालय'], te: ['న్యాయస్థానం'], kn: ['ನ್ಯಾಯಾಲಯ'], ta: ['நீதிமன்றம்'] }, gloss: 'COURT', category: 'Law and government', driveVideoId: '1FxZj6emSHjk3jhQyUjhG2VaxhF6oc32F', driveSource: 'islrtc' }
+  { aliases: { en: ['court'], hi: ['अदालत', 'न्यायालय'], te: ['న్యాయస్థానం'], kn: ['ನ್ಯಾಯಾಲಯ'], ta: ['நீதிமன்றம்'] }, gloss: 'COURT', category: 'Law and government', driveVideoId: '1FxZj6emSHjk3jhQyUjhG2VaxhF6oc32F', driveSource: 'islrtc' },
+  { aliases: { en: ['family'] }, gloss: 'FAMILY', category: 'People and relations', driveVideoId: '1Sqzzm0srC_RpT1PgdhE4nUKzSX1ZtAky', driveSource: 'islrtc' },
+  { aliases: { en: ['holiday'] }, gloss: 'HOLIDAY', category: 'Everyday communication', driveVideoId: '1eSBpDnQ5VZitn134jS5TF-JUsJZM4it_', driveSource: 'islrtc' },
+  { aliases: { en: ['honest'] }, gloss: 'HONEST', category: 'People and relations', driveVideoId: '1Kuw0kDmONBIFA_c7GKRAoPvWxD2qtA7L', driveSource: 'islrtc' },
+  { aliases: { en: ['horse'] }, gloss: 'HORSE', category: 'Animals', driveVideoId: '1wcgKUayEBcaWUYysmuHs82oN-BTmNfxE', driveSource: 'islrtc' },
+  { aliases: { en: ['hospital'] }, gloss: 'HOSPITAL', category: 'Medical', driveVideoId: '1lzZ6ZxgpZs2ASRXR0otkK5AKG14dVqkL', driveSource: 'islrtc' },
+  { aliases: { en: ["i don't understand"] }, gloss: "I DON'T UNDERSTAND", category: 'Everyday communication', driveVideoId: '1EncwoA4Amj1qL1BokkEh4ReTc4UYbGQn', driveSource: 'islrtc' },
+  { aliases: { en: ['i know'] }, gloss: 'I KNOW', category: 'Everyday communication', driveVideoId: '1BnCmUS5lI-2eZqLR9Tr0J5k-bAmyeeyj', driveSource: 'islrtc' }
 ];
