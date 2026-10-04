@@ -82,6 +82,7 @@ function populateWordSuggestions() {
     button.dataset.phrase = word;
     button.textContent = word;
     fragment.append(button);
+    if (fragment.childElementCount === 4) break;
   }
   wordSuggestions.replaceChildren(fragment);
 }

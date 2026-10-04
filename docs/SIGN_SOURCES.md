@@ -24,7 +24,9 @@ Because the source dataset is crowdsourced with no listed individual photographe
 
 ## ISLRTC Dictionary videos (Drive)
 
-The user-provided [ISL Dictionary Google Drive folder](https://drive.google.com/drive/folders/1U-Pr4r1-cupgNOOq9NH_uTsQnPSVEKco) contains an `ISLRTC 300` subfolder under `New 2500 ISL Dictionary Videos`. The curated `ACCOMMODATION`, `AGENT`, `BANYAN`, `CHILD`, `CLERK`, `CONSUMER`, `COURT`, `CRICKET`, `DENTIST`, `DIWALI`, `EGG`, `FAMILY`, `FESTIVAL`, `GAME`, `HEART`, `HEN`, `HOLIDAY`, `HONEST`, `HORSE`, `HOSPITAL`, `I DON'T UNDERSTAND`, `I KNOW`, and `TOMATO` entries use individual file IDs from that subfolder, matched against the exact video filenames. These videos are embedded and linked from Drive; they are not downloaded or mirrored into the app.
+The user-provided [ISL Dictionary Google Drive folder](https://drive.google.com/drive/folders/1U-Pr4r1-cupgNOOq9NH_uTsQnPSVEKco) contains an `ISLRTC 300` subfolder under `New 2500 ISL Dictionary Videos`. Each curated ISLRTC entry in `sign-library.js` uses the individual Drive file ID matched against its exact video filename. These videos are embedded and linked from Drive; they are not downloaded or mirrored into the app.
+
+The app has more curated video terms than it displays as examples. The home screen shows four featured word suggestions and four sentence suggestions; users can type any supported word or sentence to look up other curated entries.
 
 The folder is identified as an ISLRTC dictionary collection by its supplied source and naming. Filename matching confirms the word-to-file association, but is not independent verification of the sign's linguistic accuracy, regional variant, or authorship. Keep these results labeled as sourced from the ISLRTC 300 collection and retain the individual video link.
 
