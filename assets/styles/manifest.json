@@ -1,0 +1,16 @@
+{
+  "name": "Inclusive Communication App",
+  "short_name": "Inclusive App",
+  "description": "An inclusive communication application.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/assets/icons/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
