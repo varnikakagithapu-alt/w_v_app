@@ -1,15 +1,15 @@
-const CACHE_NAME = 'signbridge-v16';
+const CACHE_NAME = 'signbridge-v17';
 const APP_SHELL = [
-  './',
-  './index.html',
-  './assets/styles/main.css',
-  './assets/scripts/sign-library.js',
-  './assets/scripts/sign-lookup.js',
-  './assets/scripts/sign-render.js',
-  './assets/scripts/app.js',
-  './assets/scripts/practice.js',
-  './assets/scripts/calibration-store.js',
-  './manifest.json'
+  './?v=17',
+  './index.html?v=17',
+  './assets/styles/main.css?v=17',
+  './assets/scripts/sign-library.js?v=17',
+  './assets/scripts/sign-lookup.js?v=17',
+  './assets/scripts/sign-render.js?v=17',
+  './assets/scripts/app.js?v=17',
+  './assets/scripts/practice.js?v=17',
+  './assets/scripts/calibration-store.js?v=17',
+  './manifest.json?v=17'
 ];
 
 self.addEventListener('install', event => {
@@ -29,7 +29,7 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
     caches.open(CACHE_NAME).then(cache =>
-      cache.match(event.request).then(cached => cached || fetch(event.request))
+      cache.match(event.request, { ignoreSearch: true }).then(cached => cached || fetch(event.request))
     )
   );
 });
