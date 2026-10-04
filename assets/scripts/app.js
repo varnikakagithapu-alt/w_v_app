@@ -44,7 +44,12 @@ function appendTurn(message, signLookups) {
   assistantMsg.append(cards, disclaimer);
 
   transcript.append(userMsg, assistantMsg);
-  scrollTranscriptToEnd();
+  const firstVideo = cards.querySelector('iframe');
+  if (firstVideo) {
+    firstVideo.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+  } else {
+    scrollTranscriptToEnd();
+  }
 }
 
 function showSigns() {
@@ -57,7 +62,7 @@ function showSigns() {
 
   const signLookups = findSignLookups(message);
   appendTurn(message, signLookups);
-  inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready. Open a card to view the source sign video.`;
+  inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready. Sign videos are shown in the lookup cards.`;
   textInput.value = '';
   updateCount();
   textInput.focus();
