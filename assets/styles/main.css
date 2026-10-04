@@ -23,7 +23,7 @@ h2{font-size:27px}
 .hero-card li span{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--soft);color:var(--blue);font-size:12px}
 
 /* Chat panel */
-.chat{margin-top:24px;display:flex;flex-direction:column;max-height:min(680px,75vh);overflow:hidden}
+.chat{margin-top:24px;display:flex;flex-direction:column;height:min(680px,75vh);overflow:hidden}
 .transcript{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:26px;scroll-behavior:smooth}
 .msg{max-width:78%;padding:14px 16px;border-radius:14px;line-height:1.5;font-size:15px;animation:msg-in .22s ease-out}
 @keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -55,8 +55,17 @@ h2{font-size:27px}
 .composer-meta{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
 .select-label{color:var(--muted);font-size:12px;font-weight:600;display:grid;gap:5px}
 .select-label select{min-width:180px;border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);background:#fff}
-.quick-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px}
-.quick-chips button{border:1px solid #cbd7eb;background:#fff;color:#33415e;border-radius:999px;padding:9px 14px;font-size:13px}
+.suggestions{flex:0 0 auto;display:grid;gap:10px;padding:12px 20px 14px;border-top:1px solid var(--line);background:#fff}
+.suggestion-group h3{font-size:14px;letter-spacing:0}
+.suggestion-group p{margin:3px 0 8px;color:var(--muted);font-size:12px}
+.quick-chips{display:flex;flex-wrap:wrap;gap:8px}
+.quick-chips button{border:1px solid #cbd7eb;background:#fff;color:#33415e;border-radius:999px;padding:7px 12px;font-size:12px}
+.quick-chips button:hover{border-color:var(--blue);color:var(--blue);background:var(--soft)}
+.word-suggestions{max-height:72px;overflow-y:auto}
+.chat.has-results .suggestions{display:none}
+.chat.has-results{height:auto;max-height:none;overflow:visible}
+.chat.has-results .transcript{flex:0 0 auto;overflow:visible}
+.chat.has-results .composer{position:static}
 .input-panel{border:1.5px solid #cbd7eb;border-radius:15px;overflow:hidden}
 .input-panel:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px #1c4ed81a}
 textarea{border:0;outline:0;width:100%;min-height:64px;resize:vertical;padding:16px;color:var(--ink);font-size:16px;line-height:1.45}
@@ -112,11 +121,11 @@ footer a{color:var(--blue)}
   .shell{width:min(100% - 28px,1120px)}
   .topbar{height:70px}
   .hero{grid-template-columns:1fr;gap:27px;padding:42px 0 40px}
-  .chat{max-height:min(72vh,640px)}
+  .chat{height:min(72vh,640px)}
   .transcript{padding:18px}
   .msg{max-width:92%}
   .msg-assistant{max-width:94%}
-  .quick-chips{padding:0 14px 12px}
+  .suggestions{padding:10px 14px 12px}
   .practice-grid{grid-template-columns:1fr}
 }
 @media(max-width:460px){
@@ -124,7 +133,7 @@ footer a{color:var(--blue)}
   .select-label,.select-label select{width:100%}
   .input-actions{flex-wrap:wrap}
   .input-actions .button-primary{width:100%}
-  .chat{max-height:min(78vh,560px)}
+  .chat{height:min(78vh,560px)}
   .transcript{padding:14px}
   .msg{max-width:96%}
   .msg-cards{grid-template-columns:1fr}

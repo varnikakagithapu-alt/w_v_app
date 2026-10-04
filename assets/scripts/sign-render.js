@@ -5,7 +5,7 @@
  */
 import { officialSearch } from './sign-lookup.js';
 
-const PREVIEW_TIMEOUT_MS = 6000;
+const PREVIEW_TIMEOUT_MS = 15000;
 
 function driveVideoEmbedUrl(driveVideoId) {
   return `https://drive.google.com/file/d/${driveVideoId}/preview`;
@@ -21,13 +21,13 @@ function createPreviewFrame(sign) {
 
   const frame = document.createElement('iframe');
   frame.className = 'sign-preview-frame';
-  frame.src = sign.driveVideoId ? `${driveVideoEmbedUrl(sign.driveVideoId)}?autoplay=1` : officialSearch(sign.gloss);
-  frame.loading = 'lazy';
+  frame.src = sign.driveVideoId ? driveVideoEmbedUrl(sign.driveVideoId) : officialSearch(sign.gloss);
+  frame.loading = sign.driveVideoId ? 'eager' : 'lazy';
   frame.title = sign.driveVideoId
     ? `ISL sign video for ${sign.gloss}`
     : `Official ISLRTC preview for ${sign.gloss}`;
   frame.referrerPolicy = 'no-referrer';
-  frame.allow = sign.driveVideoId ? 'autoplay' : '';
+  frame.allow = '';
   frame.hidden = true;
 
   let settled = false;
@@ -127,7 +127,9 @@ export function createSignCard(sign, index) {
   if (sign.driveVideoId) {
     const note = document.createElement('p');
     note.className = 'sign-card-note';
-    note.textContent = 'Video from a community-shared ISL dictionary, not the official ISLRTC source.';
+    note.textContent = sign.driveSource === 'islrtc'
+      ? 'Video from the ISLRTC 300 collection in the ISL Dictionary Google Drive folder.'
+      : 'Video from a community-shared ISL dictionary, not the official ISLRTC source.';
     card.append(note);
   }
 

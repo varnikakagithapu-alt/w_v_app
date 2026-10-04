@@ -1,6 +1,6 @@
 /*
  * IndexedDB wrapper for practice-mode calibration samples: normalized hand
- * landmark snapshots the user records for each of the 12 dictionary words.
+ * landmark snapshots the user records for each curated dictionary word.
  * Local to this browser/device only — never synced or uploaded.
  */
 const DB_NAME = 'signbridge-calibration';

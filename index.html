@@ -15,7 +15,7 @@
   <main class="shell">
     <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="practiceModeButton" type="button">Practice conversation</button></div></header>
     <section class="hero" id="top">
-      <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Every result links to the official ISL dictionary so the signer can watch and verify the sign.</p></div>
+      <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Curated results link to their matching sign videos or the official dictionary search.</p></div>
       <aside class="hero-card"><span class="mini-label">How it works</span><ol><li><span>1</span> Speak or type a message</li><li><span>2</span> Review the recognised text</li><li><span>3</span> Open each ISL sign video</li></ol></aside>
     </section>
     <section class="chat" aria-labelledby="chat-title">
@@ -23,14 +23,25 @@
       <div id="transcript" class="transcript">
         <article class="msg msg-assistant" id="greetingMsg">
           <p class="msg-greeting">Hi! Type or speak a message in English, Hindi, Telugu, Kannada, or Tamil and I'll look up matching ISL signs.</p>
-          <p class="msg-note">This conversation isn't saved — it resets if you reload or clear the chat. Every result links to the official ISLRTC dictionary to verify the sign.</p>
+          <p class="msg-note">This conversation isn't saved — it resets if you reload or clear the chat. Each result links to its video source or the official ISLRTC dictionary search.</p>
         </article>
       </div>
-      <div class="quick-chips">
-        <button type="button" data-phrase="Hello">Hello</button>
-        <button type="button" data-phrase="Thank you">Thank you</button>
-        <button type="button" data-phrase="I need help">I need help</button>
-        <button type="button" data-phrase="Please wait">Please wait</button>
+      <div class="suggestions">
+        <div class="suggestion-group">
+          <h3>Try a sentence</h3>
+          <p>Tap a sentence to show videos for each matching word.</p>
+          <div class="quick-chips" id="phraseSuggestions">
+            <button type="button" data-phrase="Hello, child">Hello, child</button>
+            <button type="button" data-phrase="Please wait">Please wait</button>
+            <button type="button" data-phrase="I need help">I need help</button>
+            <button type="button" data-phrase="Thank you, doctor">Thank you, doctor</button>
+          </div>
+        </div>
+        <div class="suggestion-group">
+          <h3>Words with videos</h3>
+          <p>Choose a word, or type it in a sentence, then press Send.</p>
+          <div class="quick-chips word-suggestions" id="wordSuggestions" aria-label="Words with sign videos"></div>
+        </div>
       </div>
       <div class="composer">
         <div class="composer-meta">
@@ -52,7 +63,7 @@
 
       <p class="msg-disclaimer practice-disclaimer">
         <span aria-hidden="true">i</span>
-        <span>Experimental, same-device test mode. Sign recognition only works for the 12 words below, requires you to record your own reference samples first, only reads a single held hand pose (not motion or two-handed signs), and can misread poses it hasn't seen. Manual word selection always works without the camera. See <a href="docs/SIGN_RECOGNITION.md" target="_blank" rel="noopener noreferrer">how this works and its limits</a>.</span>
+        <span>Experimental, same-device test mode. Sign recognition only works for the curated words in this app, requires you to record your own reference samples first, only reads a single held hand pose (not motion or two-handed signs), and can misread poses it hasn't seen. Manual word selection always works without the camera. See <a href="docs/SIGN_RECOGNITION.md" target="_blank" rel="noopener noreferrer">how this works and its limits</a>.</span>
       </p>
 
       <div class="practice-camera-row">
@@ -66,7 +77,7 @@
             <button type="button" class="button button-quiet" id="toggleU2" data-panel="u2" role="radio" aria-checked="false">U2 camera active</button>
           </div>
           <button class="button button-quiet" id="calibrateButton" type="button">Record my signs</button>
-          <span class="helper" id="calibrationStatus">Calibrated: 0 / 12 words</span>
+          <span class="helper" id="calibrationStatus">Calibrated: 0 words</span>
         </div>
       </div>
 
@@ -134,7 +145,7 @@
       </div>
     </dialog>
 
-    <footer><p>Sign sources: <a href="https://divyangjan.depwd.gov.in/islrtc/" target="_blank" rel="noopener noreferrer">Indian Sign Language Research and Training Centre (ISLRTC)</a>. SignBridge links to the official source for sign-video verification.</p></footer>
+    <footer><p>Sign sources: <a href="https://divyangjan.depwd.gov.in/islrtc/" target="_blank" rel="noopener noreferrer">Indian Sign Language Research and Training Centre (ISLRTC)</a>. See <a href="docs/SIGN_SOURCES.md" target="_blank" rel="noopener noreferrer">source details</a> for curated video links.</p></footer>
   </main>
   <script src="assets/scripts/sign-library.js"></script>
   <script type="module" src="assets/scripts/app.js"></script>

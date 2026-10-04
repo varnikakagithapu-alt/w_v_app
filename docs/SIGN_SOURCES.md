@@ -22,8 +22,14 @@ These images cover only the 26 letters and are used exclusively as a **fingerspe
 
 Because the source dataset is crowdsourced with no listed individual photographer credit per image, treat these as unverified reference material (clearly labeled as such in the UI) rather than an ISLRTC-equivalent authoritative source. If a verified official fingerspelling chart becomes available, prefer it and remove this dataset.
 
+## ISLRTC Dictionary videos (Drive)
+
+The user-provided [ISL Dictionary Google Drive folder](https://drive.google.com/drive/folders/1U-Pr4r1-cupgNOOq9NH_uTsQnPSVEKco) contains an `ISLRTC 300` subfolder under `New 2500 ISL Dictionary Videos`. The curated `ACCOMMODATION`, `AGENT`, `BANYAN`, `CHILD`, `CLERK`, `CONSUMER`, and `COURT` entries use individual file IDs from that subfolder, matched against the exact video filenames. These videos are embedded and linked from Drive; they are not downloaded or mirrored into the app.
+
+The folder is identified as an ISLRTC dictionary collection by its supplied source and naming. Filename matching confirms the word-to-file association, but is not independent verification of the sign's linguistic accuracy, regional variant, or authorship. Keep these results labeled as sourced from the ISLRTC 300 collection and retain the individual video link.
+
 ## Community ISL Dictionary videos (Drive)
 
-Some curated entries in `sign-library.js` (currently: HELLO, THANK-YOU, PLEASE, HELP, WAIT, YES, NO, SORRY, NAME, WATER, FOOD, DOCTOR) carry a `driveVideoId` field pointing to a specific whole-word sign video in a publicly shared "ISL Dictionary" Google Drive folder, organized alphabetically with one video per word/phrase. Only the exact video file matching each curated word was linked — the folder itself is not downloaded, mirrored, or hosted; the app embeds/links to it live via Drive's file preview and view URLs.
+Some curated entries in `sign-library.js` (currently: HELLO, THANK-YOU, PLEASE, HELP, WAIT, YES, NO, SORRY, NAME, WATER, FOOD, DOCTOR) carry a `driveVideoId` field pointing to a specific whole-word sign video in a community-shared "ISL Dictionary" Google Drive folder, organized alphabetically with one video per word/phrase. Only the exact video file matching each curated word was linked — the folder itself is not downloaded, mirrored, or hosted; the app embeds/links to it live via Drive's file preview and view URLs.
 
-This is a **shared/found resource of unclear ownership and authorship**, not ISLRTC's official dictionary. Treat it the same as the fingerspelling images: useful, unverified, and clearly labeled in the UI as community-sourced rather than official. Do not add further entries from this source without the same name-match verification used for the existing 12 words, and do not present it as ISLRTC-equivalent.
+This is a **shared/found resource of unclear ownership and authorship**, not ISLRTC's official dictionary. Treat it the same as the fingerspelling images: useful, unverified, and clearly labeled in the UI as community-sourced rather than official. Do not add further entries from this source without exact name-match verification, and do not present it as ISLRTC-equivalent.

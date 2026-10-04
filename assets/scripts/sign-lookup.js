@@ -20,6 +20,14 @@ function flattenAliases(aliases) {
   return Object.values(aliases).flat();
 }
 
+function matchesAlias(message, alias) {
+  const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    `(?:^|[^\\p{L}\\p{N}\\p{M}])${escaped}(?=$|[^\\p{L}\\p{N}\\p{M}])`,
+    'u'
+  ).test(message);
+}
+
 function levenshteinDistance(a, b) {
   const rows = a.length + 1;
   const cols = b.length + 1;
@@ -95,7 +103,7 @@ function findFingerspellEntry(message) {
 export function findSignLookups(message) {
   const normalized = message.toLocaleLowerCase();
   const exactMatches = window.SIGN_LIBRARY.filter(sign =>
-    flattenAliases(sign.aliases).some(alias => normalized.includes(alias.toLocaleLowerCase()))
+    flattenAliases(sign.aliases).some(alias => matchesAlias(normalized, alias.toLocaleLowerCase()))
   ).map(sign => ({ ...sign, kind: 'match' }));
   const uniqueExact = exactMatches.filter((sign, index) =>
     exactMatches.findIndex(match => match.gloss === sign.gloss) === index

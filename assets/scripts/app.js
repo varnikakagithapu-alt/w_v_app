@@ -9,14 +9,16 @@ const micButton = document.querySelector('#micButton');
 const micLabel = document.querySelector('#micLabel');
 const transcript = document.querySelector('#transcript');
 const greetingClone = document.querySelector('#greetingMsg').cloneNode(true);
+const phraseSuggestions = document.querySelector('#phraseSuggestions');
+const wordSuggestions = document.querySelector('#wordSuggestions');
 
 function updateCount() {
   wordCount.textContent = `${textInput.value.length} / 280`;
 }
 
-function scrollTranscriptToEnd() {
+function scrollResultsIntoView(target) {
   requestAnimationFrame(() => {
-    transcript.scrollTo({ top: transcript.scrollHeight, behavior: 'smooth' });
+    target.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
 }
 
@@ -33,6 +35,11 @@ function appendTurn(message, signLookups) {
   const cards = document.createElement('div');
   cards.className = 'msg-cards';
   cards.append(...signLookups.map(createSignCard));
+  const resultsNote = document.createElement('p');
+  resultsNote.className = 'msg-note msg-results-note';
+  resultsNote.textContent = signLookups.length > 1
+    ? `Matched words: ${signLookups.map(sign => sign.gloss).join(', ')}. Scroll down to view each video.`
+    : `Showing video for ${signLookups[0].gloss}.`;
   const disclaimer = document.createElement('p');
   disclaimer.className = 'msg-disclaimer';
   const disclaimerIcon = document.createElement('span');
@@ -41,10 +48,11 @@ function appendTurn(message, signLookups) {
   const disclaimerText = document.createElement('span');
   disclaimerText.textContent = 'ISL has its own grammar. These are database lookups, not a word-for-word signed translation. Verify regional variants with the official source.';
   disclaimer.append(disclaimerIcon, disclaimerText);
-  assistantMsg.append(cards, disclaimer);
+  assistantMsg.append(resultsNote, cards, disclaimer);
 
   transcript.append(userMsg, assistantMsg);
-  scrollTranscriptToEnd();
+  document.querySelector('.chat').classList.add('has-results');
+  scrollResultsIntoView(resultsNote);
 }
 
 function showSigns() {
@@ -57,10 +65,33 @@ function showSigns() {
 
   const signLookups = findSignLookups(message);
   appendTurn(message, signLookups);
-  inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready. Open a card to view the source sign video.`;
+  const matchedWords = signLookups.map(sign => sign.gloss).join(', ');
+  inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready: ${matchedWords}. Open each card to view its source sign video.`;
   textInput.value = '';
   updateCount();
   textInput.focus();
+}
+
+function populateWordSuggestions() {
+  const fragment = document.createDocumentFragment();
+  for (const sign of window.SIGN_LIBRARY) {
+    if (!sign.driveVideoId || !sign.aliases.en?.length) continue;
+    const word = sign.aliases.en[0];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.phrase = word;
+    button.textContent = word;
+    fragment.append(button);
+  }
+  wordSuggestions.replaceChildren(fragment);
+}
+
+function handleSuggestionClick(event) {
+  const button = event.target.closest('button[data-phrase]');
+  if (!button) return;
+  textInput.value = button.dataset.phrase;
+  updateCount();
+  showSigns();
 }
 
 export function startListening({ input, micButton, micLabel, languageSelect, statusEl }) {
@@ -104,6 +135,7 @@ export function startListening({ input, micButton, micLabel, languageSelect, sta
 function clearResults() {
   if (transcript.children.length > 1 && !window.confirm('Clear this conversation? This cannot be undone.')) return;
   transcript.replaceChildren(greetingClone.cloneNode(true));
+  document.querySelector('.chat').classList.remove('has-results');
   textInput.value = '';
   updateCount();
   inputStatus.textContent = 'You can edit speech recognition before looking up signs.';
@@ -127,13 +159,9 @@ micButton.addEventListener('click', () => startListening({
   languageSelect,
   statusEl: inputStatus,
 }));
-document.querySelectorAll('[data-phrase]').forEach(button => {
-  button.addEventListener('click', () => {
-    textInput.value = button.dataset.phrase;
-    updateCount();
-    showSigns();
-  });
-});
+phraseSuggestions.addEventListener('click', handleSuggestionClick);
+wordSuggestions.addEventListener('click', handleSuggestionClick);
 
+populateWordSuggestions();
 updateCount();
 registerServiceWorker();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'signbridge-v5';
+const CACHE_NAME = 'signbridge-v15';
 const APP_SHELL = [
   './',
   './index.html',

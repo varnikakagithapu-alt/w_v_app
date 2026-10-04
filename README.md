@@ -21,8 +21,8 @@ Serve the repository with any static web server, then open the local URL in a mo
 
 ## Data policy
 
-Results open the official ISLRTC dictionary. See [sign sources](docs/SIGN_SOURCES.md) before adding sign mappings or bundled media.
+Unmatched terms search the official ISLRTC dictionary; curated terms can open a linked word video. See [sign sources](docs/SIGN_SOURCES.md) before adding sign mappings or bundled media.
 
 ## In-app video
 
-An official ISLRTC greeting lesson is embedded for the curated `HELLO` lookup. Add only verified video IDs to `assets/scripts/sign-library.js`; all other results continue to link to the official dictionary.
+Curated word lookups can embed their exact matching video from Google Drive. The library includes community-shared clips and clips from the ISLRTC 300 collection; their source labels are shown with each result. Other terms fall back to the official dictionary search. See [sign sources](docs/SIGN_SOURCES.md) before adding mappings or media.

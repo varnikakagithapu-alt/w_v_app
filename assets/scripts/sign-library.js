@@ -8,10 +8,10 @@
  * given language, not just substring-matched. Each key holds one or more
  * accepted variants for that language.
  *
- * driveVideoId: file ID of a specific matching video in the community-shared
- * ISL Dictionary Drive folder (see docs/SIGN_SOURCES.md). Verified by name
- * match against the folder listing, not by an ISL interpreter — treat as
- * unverified/community-sourced, same as the fingerspelling dataset.
+ * driveVideoId: file ID of a specific matching video in a public dictionary
+ * Drive folder (see docs/SIGN_SOURCES.md). Match each ID to the exact filename;
+ * a filename match does not validate the sign with an ISL interpreter.
+ * driveSource identifies the source collection when it needs distinct labeling.
  */
 window.SIGN_LIBRARY = [
   { aliases: { en: ['hello', 'hi', 'namaste'], hi: ['नमस्ते'], te: ['హలో'], kn: ['ನಮಸ್ಕಾರ'], ta: ['வணக்கம்'] }, gloss: 'HELLO', category: 'Greeting', driveVideoId: '1q25_z8OFiFiWlSAKuESn4mw9Cytpxmr3' },
@@ -25,5 +25,12 @@ window.SIGN_LIBRARY = [
   { aliases: { en: ['name'], hi: ['नाम'], te: ['పేరు'], kn: ['ಹೆಸರು'], ta: ['பெயர்'] }, gloss: 'NAME', category: 'People and relations', driveVideoId: '1A3IyV8n35GhQVGO04vOesYpKUEwHV24C' },
   { aliases: { en: ['water'], hi: ['पानी'], te: ['నీరు'], kn: ['ನೀರು'], ta: ['தண்ணீர்'] }, gloss: 'WATER', category: 'Food and drink', driveVideoId: '1TXFmAS2vWOZNcWepZ6CcaEXtslDWc_El' },
   { aliases: { en: ['food'], hi: ['खाना', 'भोजन'], te: ['ఆహారం'], kn: ['ಆಹಾರ'], ta: ['உணவு'] }, gloss: 'FOOD', category: 'Food and drink', driveVideoId: '1w9fTPt3KklYVD9U0Xjk1yJ5-zPxB-w4j' },
-  { aliases: { en: ['doctor'], hi: ['डॉक्टर'], te: ['వైద్యుడు'], kn: ['ಡಾಕ್ಟರ್'], ta: ['மருத்துவர்'] }, gloss: 'DOCTOR', category: 'Medical', driveVideoId: '1vv8ufp1Egd_YymtXKaRsJp8lV_31K6c1' }
+  { aliases: { en: ['doctor'], hi: ['डॉक्टर'], te: ['వైద్యుడు'], kn: ['ಡಾಕ್ಟರ್'], ta: ['மருத்துவர்'] }, gloss: 'DOCTOR', category: 'Medical', driveVideoId: '1vv8ufp1Egd_YymtXKaRsJp8lV_31K6c1' },
+  { aliases: { en: ['accommodation'], hi: ['आवास'], te: ['వసతి'], kn: ['ವಸತಿ'], ta: ['தங்குமிடம்'] }, gloss: 'ACCOMMODATION', category: 'Everyday communication', driveVideoId: '1GqkD5PGX7scEax6DjMlIJ9gS9uvjKt-9', driveSource: 'islrtc' },
+  { aliases: { en: ['agent'], hi: ['एजेंट'], te: ['ఏజెంట్'], kn: ['ಏಜೆಂಟ್'], ta: ['முகவர்'] }, gloss: 'AGENT', category: 'People and relations', driveVideoId: '10S-AELxDuBE8Yi0dw9V7HD6sRujgwTeC', driveSource: 'islrtc' },
+  { aliases: { en: ['banyan'], hi: ['बरगद'], te: ['మర్రి చెట్టు'], kn: ['ಆಲದ ಮರ'], ta: ['ஆலமரம்'] }, gloss: 'BANYAN', category: 'Nature', driveVideoId: '12L_XhudKNAe1WaJoGx4V5yKYj2WvV-hf', driveSource: 'islrtc' },
+  { aliases: { en: ['child'], hi: ['बच्चा', 'बच्ची'], te: ['పిల్లవాడు', 'పిల్ల'], kn: ['ಮಗು'], ta: ['குழந்தை'] }, gloss: 'CHILD', category: 'People and relations', driveVideoId: '1jQAVkIz4qGy1mTJSq_wiXKyL4J_QZUI6', driveSource: 'islrtc' },
+  { aliases: { en: ['clerk'], hi: ['लिपिक'], te: ['గుమాస్తా'], kn: ['ಗುಮಾಸ್ತ'], ta: ['எழுத்தர்'] }, gloss: 'CLERK', category: 'Work and education', driveVideoId: '1qw61wIhxV9boTFSsTSoznwC6qIDDc25O', driveSource: 'islrtc' },
+  { aliases: { en: ['consumer'], hi: ['उपभोक्ता'], te: ['వినియోగదారుడు'], kn: ['ಗ್ರಾಹಕ'], ta: ['நுகர்வோர்'] }, gloss: 'CONSUMER', category: 'Everyday communication', driveVideoId: '1VflFyqHVhXJfnsvEFuoq3nf9ngzmNR19', driveSource: 'islrtc' },
+  { aliases: { en: ['court'], hi: ['अदालत', 'न्यायालय'], te: ['న్యాయస్థానం'], kn: ['ನ್ಯಾಯಾಲಯ'], ta: ['நீதிமன்றம்'] }, gloss: 'COURT', category: 'Law and government', driveVideoId: '1FxZj6emSHjk3jhQyUjhG2VaxhF6oc32F', driveSource: 'islrtc' }
 ];

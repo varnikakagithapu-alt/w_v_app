@@ -1,15 +1,15 @@
 # Practice-mode sign recognition
 
-`#practiceMode` (the "Practice conversation" button in the top bar) adds an experimental, same-device, two-panel test flow: U1 signs to a shared camera, the app tries to recognize which of the 12 curated words (`assets/scripts/sign-library.js`) it matches and shows that word to U2 in their chosen language; U2 replies by typing/speaking, and the reply is looked up and shown back to U1 as sign video cards using the same rendering as the main chat.
+`#practiceMode` (the "Practice conversation" button in the top bar) adds an experimental, same-device, two-panel test flow: U1 signs to a shared camera, the app tries to recognize which curated word (`assets/scripts/sign-library.js`) it matches and shows that word to U2 in their chosen language; U2 replies by typing/speaking, and the reply is looked up and shown back to U1 as sign video cards using the same rendering as the main chat.
 
 ## What this is
 
-On-device, client-side hand-pose matching for exactly the 12 words already in `sign-library.js`. It uses MediaPipe Tasks Vision `HandLandmarker` (Google, Apache-2.0, loaded from the jsDelivr CDN at a pinned version, `@mediapipe/tasks-vision@0.10.21`) purely to extract 21 hand-landmark points per frame — there is no ISL-specific model, no bundled training data, and no cloud/server-side inference. Matching is a plain nearest-neighbor distance comparison against landmark samples the user records themselves (`assets/scripts/hand-recognition.js`, `assets/scripts/calibration-store.js`).
+On-device, client-side hand-pose matching for the curated words in `sign-library.js`. It uses MediaPipe Tasks Vision `HandLandmarker` (Google, Apache-2.0, loaded from the jsDelivr CDN at a pinned version, `@mediapipe/tasks-vision@0.10.21`) purely to extract 21 hand-landmark points per frame — there is no ISL-specific model, no bundled training data, and no cloud/server-side inference. Matching is a plain nearest-neighbor distance comparison against landmark samples the user records themselves (`assets/scripts/hand-recognition.js`, `assets/scripts/calibration-store.js`).
 
 ## What this is NOT
 
-- **Not a general ISL recognizer.** It only ever attempts to recognize the 12 words in `sign-library.js` — nothing else.
-- **Not motion-aware.** Recognition is based on a single held hand pose per frame. Any sign whose meaning depends on movement (a wave, a repeated or directional motion) rather than a static final handshape will not be reliably distinguished from a similar-looking static pose. Treat all 12 words as lower-confidence candidates for this matcher until tested individually — several (e.g. WAIT, HELP) plausibly involve motion in actual ISL production that a static snapshot won't capture.
+- **Not a general ISL recognizer.** It only ever attempts to recognize words in `sign-library.js` — nothing else.
+- **Not motion-aware.** Recognition is based on a single held hand pose per frame. Any sign whose meaning depends on movement (a wave, a repeated or directional motion) rather than a static final handshape will not be reliably distinguished from a similar-looking static pose. Treat every word as a lower-confidence candidate for this matcher until tested individually — several (e.g. WAIT, HELP) plausibly involve motion in actual ISL production that a static snapshot won't capture.
 - **Not two-hand aware.** Only the first detected hand is used; two-handed signs are not supported in this version.
 - **Not verified against real ISL production.** Nobody has checked that the reference poses a user records actually match standard ISL handshapes — this is whatever the user themselves signs and labels.
 - **Not usable out of the box.** No shared or pre-trained reference set ships with the app. Each user must record their own calibration samples via "Record my signs" before recognition can do anything; unrecorded words always fall back to manual selection.
