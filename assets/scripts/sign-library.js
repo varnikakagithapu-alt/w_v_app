@@ -39,5 +39,14 @@ window.SIGN_LIBRARY = [
   { aliases: { en: ['horse'] }, gloss: 'HORSE', category: 'Animals', driveVideoId: '1wcgKUayEBcaWUYysmuHs82oN-BTmNfxE', driveSource: 'islrtc' },
   { aliases: { en: ['hospital'] }, gloss: 'HOSPITAL', category: 'Medical', driveVideoId: '1lzZ6ZxgpZs2ASRXR0otkK5AKG14dVqkL', driveSource: 'islrtc' },
   { aliases: { en: ["i don't understand"] }, gloss: "I DON'T UNDERSTAND", category: 'Everyday communication', driveVideoId: '1EncwoA4Amj1qL1BokkEh4ReTc4UYbGQn', driveSource: 'islrtc' },
-  { aliases: { en: ['i know'] }, gloss: 'I KNOW', category: 'Everyday communication', driveVideoId: '1BnCmUS5lI-2eZqLR9Tr0J5k-bAmyeeyj', driveSource: 'islrtc' }
+  { aliases: { en: ['i know'] }, gloss: 'I KNOW', category: 'Everyday communication', driveVideoId: '1BnCmUS5lI-2eZqLR9Tr0J5k-bAmyeeyj', driveSource: 'islrtc' },
+  { aliases: { en: ['cricket'] }, gloss: 'CRICKET', category: 'Sports and recreation', driveVideoId: '1CO1TVdV65fO2VfJsK2K2aPQqFQ-pj4Sj', driveSource: 'islrtc' },
+  { aliases: { en: ['dentist'] }, gloss: 'DENTIST', category: 'Medical', driveVideoId: '1MNCccDSBqhYJkt32JCrpdnbyF-jZomgf', driveSource: 'islrtc' },
+  { aliases: { en: ['diwali'] }, gloss: 'DIWALI', category: 'Festivals', driveVideoId: '1tEUWzjiaJMfg6l8YAjQeBBY7ZAijCSUZ', driveSource: 'islrtc' },
+  { aliases: { en: ['egg'] }, gloss: 'EGG', category: 'Food and drink', driveVideoId: '1rlU8Y5TKKjso2xt5k1oZWcxOizYt1iPD', driveSource: 'islrtc' },
+  { aliases: { en: ['festival'] }, gloss: 'FESTIVAL', category: 'Events and celebrations', driveVideoId: '1Kd4Aqa6lNgd5Mo_k0B83PH98rBhWt1r3', driveSource: 'islrtc' },
+  { aliases: { en: ['game'] }, gloss: 'GAME', category: 'Sports and recreation', driveVideoId: '1U8sIM75btYOqlujpbSYaF18V_oN98zjG', driveSource: 'islrtc' },
+  { aliases: { en: ['heart'] }, gloss: 'HEART', category: 'Health', driveVideoId: '1adxJMTWcyz2ATscbXNQiHVTYR3OZgJH6', driveSource: 'islrtc' },
+  { aliases: { en: ['hen'] }, gloss: 'HEN', category: 'Animals', driveVideoId: '1EUUTeM88XST391rQQsHFtHBS7mCssJL1', driveSource: 'islrtc' },
+  { aliases: { en: ['tomato'] }, gloss: 'TOMATO', category: 'Food and drink', driveVideoId: '1zlJ9-F9GJt0pJN0H3kRWcUAl-M0NwZ9f', driveSource: 'islrtc' }
 ];
