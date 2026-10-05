@@ -8,6 +8,9 @@ const SAMPLES_PER_WORD = 5;
 const practiceModeButton = document.querySelector('#practiceModeButton');
 const practiceMode = document.querySelector('#practiceMode');
 const practiceExitButton = document.querySelector('#practiceExitButton');
+const hero = document.querySelector('#top');
+const chat = document.querySelector('#chat');
+const learningMode = document.querySelector('#learningMode');
 
 const videoWrap = document.querySelector('#videoWrap');
 const sharedCameraVideo = document.querySelector('#sharedCameraVideo');
@@ -301,6 +304,9 @@ function closeCalibrationDialog() {
 // Wiring
 
 practiceModeButton.addEventListener('click', () => {
+  hero.hidden = true;
+  chat.hidden = true;
+  learningMode.hidden = true;
   practiceMode.hidden = false;
   populateManualSelect();
   refreshCalibrationStatus();
@@ -310,6 +316,8 @@ practiceModeButton.addEventListener('click', () => {
 practiceExitButton.addEventListener('click', () => {
   stopCamera();
   practiceMode.hidden = true;
+  hero.hidden = false;
+  chat.hidden = false;
 });
 
 toggleU1.addEventListener('click', () => setActivePanel('u1'));

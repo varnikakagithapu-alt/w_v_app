@@ -2,6 +2,8 @@
 
 A browser-based assistant that accepts English, Hindi, Telugu, Kannada, and Tamil text or speech and helps users look up Indian Sign Language (ISL) signs.
 
+The **Learn ISL** section provides self-paced lessons across the alphabet, numbers, greetings, family, education, emergency, food, places, and common conversations. It uses official dictionary searches when a curated in-app video is not available.
+
 ## Project structure
 
 ```
