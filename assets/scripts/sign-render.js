@@ -107,6 +107,7 @@ export function createSignCard(sign, index) {
   const title = document.createElement('h3');
   const description = document.createElement('p');
   const link = document.createElement('a');
+  const favoriteButton = document.createElement('button');
 
   card.className = 'sign-card';
   number.className = 'card-number';
@@ -128,7 +129,19 @@ export function createSignCard(sign, index) {
     link.textContent = 'Watch official ISL sign ↗';
   }
 
-  card.append(number, title, createPreviewFrame(sign), description, link);
+  card.append(number, title, createPreviewFrame(sign), description);
+
+  if (sign.kind === 'match' || sign.kind === 'fuzzy' || sign.kind === 'search') {
+    favoriteButton.className = 'favorite-toggle';
+    favoriteButton.type = 'button';
+    favoriteButton.dataset.favoriteGloss = sign.gloss;
+    favoriteButton.setAttribute('aria-pressed', 'false');
+    favoriteButton.setAttribute('aria-label', `Save ${sign.gloss} to My Signs`);
+    favoriteButton.textContent = '☆ Save to My Signs';
+    card.append(favoriteButton);
+  }
+
+  card.append(link);
 
   if (sign.driveVideoId) {
     const note = document.createElement('p');

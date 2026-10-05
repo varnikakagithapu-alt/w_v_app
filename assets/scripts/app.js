@@ -1,4 +1,4 @@
-import { findSignLookups, findSituationPhraseLookups } from './sign-lookup.js';
+import { findSignLookups, findSituationPhraseLookups, officialSearch } from './sign-lookup.js';
 import { createSignCard } from './sign-render.js';
 
 const textInput = document.querySelector('#textInput');
@@ -13,7 +13,12 @@ const transcript = document.querySelector('#transcript');
 const greetingClone = document.querySelector('#greetingMsg').cloneNode(true);
 const phraseSuggestions = document.querySelector('#phraseSuggestions');
 const wordSuggestions = document.querySelector('#wordSuggestions');
+const favoriteSigns = document.querySelector('#favoriteSigns');
+const favoritesStatus = document.querySelector('#favoritesStatus');
 const listeningSessions = new WeakMap();
+const FAVORITES_STORAGE_KEY = 'signbridge-favorites-v1';
+let favoriteGlosses = new Set();
+let favoritesAvailable = true;
 
 function updateCount() {
   wordCount.textContent = `${textInput.value.length} / 280`;
@@ -23,6 +28,95 @@ function scrollResultsIntoView(target) {
   requestAnimationFrame(() => {
     target.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
+}
+
+function readFavoriteGlosses() {
+  const storedValue = localStorage.getItem(FAVORITES_STORAGE_KEY);
+  if (!storedValue) return new Set();
+
+  const parsed = JSON.parse(storedValue);
+  if (!Array.isArray(parsed) || parsed.some(gloss => typeof gloss !== 'string' || !gloss.trim())) {
+    throw new Error('Saved signs data is not in the expected format.');
+  }
+  return new Set(parsed);
+}
+
+function updateFavoriteButtons() {
+  document.querySelectorAll('[data-favorite-gloss]').forEach(button => {
+    const isFavorite = favoriteGlosses.has(button.dataset.favoriteGloss);
+    const pressedValue = String(isFavorite);
+    const label = `${isFavorite ? 'Remove' : 'Save'} ${button.dataset.favoriteGloss} ${isFavorite ? 'from' : 'to'} My Signs`;
+    const buttonText = isFavorite ? '★ Saved to My Signs' : '☆ Save to My Signs';
+    if (button.getAttribute('aria-pressed') !== pressedValue) button.setAttribute('aria-pressed', pressedValue);
+    if (button.getAttribute('aria-label') !== label) button.setAttribute('aria-label', label);
+    if (button.textContent !== buttonText) button.textContent = buttonText;
+    button.disabled = !favoritesAvailable;
+  });
+}
+
+function createFavoriteItem(sign) {
+  const item = document.createElement('article');
+  const title = document.createElement('h3');
+  const description = document.createElement('p');
+  const link = document.createElement('a');
+  const removeButton = document.createElement('button');
+
+  item.className = 'favorite-item';
+  title.textContent = sign.gloss;
+  description.textContent = sign.fallback
+    ? 'Dictionary search — no curated sign video available.'
+    : sign.category;
+  link.className = 'source-link';
+  link.href = sign.driveVideoId
+    ? `https://drive.google.com/file/d/${sign.driveVideoId}/view`
+    : officialSearch(sign.gloss);
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = sign.driveVideoId ? 'Open sign video ↗' : 'Search official dictionary ↗';
+  removeButton.className = 'favorite-toggle';
+  removeButton.type = 'button';
+  removeButton.dataset.favoriteGloss = sign.gloss;
+  removeButton.setAttribute('aria-pressed', 'true');
+  removeButton.setAttribute('aria-label', `Remove ${sign.gloss} from My Signs`);
+  removeButton.textContent = '★ Saved to My Signs';
+
+  item.append(title, description, link, removeButton);
+  return item;
+}
+
+function renderFavorites() {
+  const signs = [...favoriteGlosses]
+    .map(gloss => window.SIGN_LIBRARY.find(sign => sign.gloss === gloss) || {
+      kind: 'search',
+      gloss,
+      category: 'Search this phrase in the official dictionary',
+      fallback: true,
+    });
+  favoriteSigns.replaceChildren(...signs.map(createFavoriteItem));
+  updateFavoriteButtons();
+  if (favoritesAvailable) {
+    favoritesStatus.textContent = signs.length
+      ? `${signs.length} ${signs.length === 1 ? 'item' : 'items'} saved on this device.`
+      : 'Save a curated sign or dictionary search from any result card to keep it here on this device.';
+  }
+}
+
+function toggleFavorite(gloss) {
+  if (!favoritesAvailable) return;
+
+  const updatedFavorites = new Set(favoriteGlosses);
+  if (updatedFavorites.has(gloss)) updatedFavorites.delete(gloss);
+  else updatedFavorites.add(gloss);
+
+  try {
+    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...updatedFavorites]));
+  } catch (error) {
+    favoritesStatus.textContent = `Could not save this sign in this browser: ${error.message}`;
+    return;
+  }
+
+  favoriteGlosses = updatedFavorites;
+  renderFavorites();
 }
 
 function appendTurn(message, signLookups) {
@@ -380,6 +474,27 @@ function registerServiceWorker() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 }
 
+document.addEventListener('click', event => {
+  const button = event.target.closest('button[data-favorite-gloss]');
+  if (button) toggleFavorite(button.dataset.favoriteGloss);
+});
+
+const favoriteButtonObserver = new MutationObserver(updateFavoriteButtons);
+favoriteButtonObserver.observe(document.body, { childList: true, subtree: true });
+
+window.addEventListener('storage', event => {
+  if (event.key !== FAVORITES_STORAGE_KEY && event.key !== null) return;
+  try {
+    favoriteGlosses = readFavoriteGlosses();
+    favoritesAvailable = true;
+    renderFavorites();
+  } catch (error) {
+    favoritesAvailable = false;
+    favoritesStatus.textContent = `Could not load saved signs from this browser: ${error.message}`;
+    renderFavorites();
+  }
+});
+
 textInput.addEventListener('input', updateCount);
 textInput.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') showSigns();
@@ -407,4 +522,12 @@ wordSuggestions.addEventListener('click', handleSuggestionClick);
 
 populateWordSuggestions();
 updateCount();
+try {
+  favoriteGlosses = readFavoriteGlosses();
+  renderFavorites();
+} catch (error) {
+  favoritesAvailable = false;
+  favoritesStatus.textContent = `Could not load saved signs from this browser: ${error.message}`;
+  renderFavorites();
+}
 registerServiceWorker();

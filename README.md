@@ -8,6 +8,8 @@ The **Practice / Quiz** section includes a 10-question ISL sign quiz with random
 
 The assistant also provides quick-access phrase lookups for College, Hospital, Travel, and Daily life. Typed messages and situation phrases show every available curated sign match and search the official ISLRTC dictionary for unmatched terms; phrases without curated matches are searched whole. No missing sign video is implied, and phrase lookups are references, not word-for-word signed translations.
 
+Save curated signs or dictionary searches to **My Signs** to keep a personal list in this browser. Favorites are stored on the current device and are not synced between browsers; saved dictionary searches remain clearly labeled as searches, not curated sign videos.
+
 ## Project structure
 
 ```

@@ -22,6 +22,22 @@ h2{font-size:27px}
 .hero-card ol{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:17px}
 .hero-card li{display:flex;gap:12px;align-items:center;font-size:15px;font-weight:500}
 .hero-card li span{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--soft);color:var(--blue);font-size:12px}
+.favorites-section{margin-top:24px;padding:20px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 32px #1a397111}
+.favorites-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}
+.favorites-heading .eyebrow{margin-bottom:6px}
+.favorites-heading h2{font-size:22px}
+.favorites-heading>p{max-width:390px;margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.favorites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.favorites-grid:empty{display:none}
+.favorite-item{min-width:0;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfcff;display:flex;flex-direction:column;align-items:flex-start}
+.favorite-item h3{font-size:16px;letter-spacing:0;overflow-wrap:anywhere}
+.favorite-item p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
+.favorite-item .source-link{margin-top:10px}
+.favorites-status{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.favorite-toggle{margin-top:12px;align-self:flex-start;border:1px solid #f2c75c;border-radius:999px;padding:7px 11px;background:#fff9e6;color:#795b00;font-size:12px;font-weight:700}
+.favorite-toggle[aria-pressed="true"]{border-color:#e9b930;background:#fff1bb}
+.favorite-toggle:hover{border-color:#d49f00}
+.favorite-toggle:disabled{cursor:not-allowed;opacity:.55}
 .situation-shortcuts{margin-top:24px;padding:20px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 32px #1a397111}
 .situations-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px}
 .situations-heading .eyebrow{margin-bottom:6px}
@@ -188,6 +204,7 @@ footer a{color:var(--blue)}
   .suggestions{padding:10px 14px 12px}
   .situation-grid{grid-template-columns:1fr}
   .situations-heading{align-items:flex-start;flex-direction:column;gap:6px}
+  .favorites-heading{align-items:flex-start;flex-direction:column;gap:6px}
   .practice-grid{grid-template-columns:1fr}
   .quiz-options{grid-template-columns:1fr}
   .language-note{gap:5px;font-size:12px}
