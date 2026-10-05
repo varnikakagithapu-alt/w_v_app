@@ -1,16 +1,16 @@
-const CACHE_NAME = 'signbridge-v33';
+const CACHE_NAME = 'signbridge-v34';
 const APP_SHELL = [
-  './?v=33',
-  './index.html?v=33',
-  './assets/styles/main.css?v=33',
-  './assets/scripts/sign-library.js?v=33',
-  './assets/scripts/sign-lookup.js?v=33',
-  './assets/scripts/sign-render.js?v=33',
-  './assets/scripts/app.js?v=33',
-  './assets/scripts/learning.js?v=33',
-  './assets/scripts/practice.js?v=33',
-  './assets/scripts/calibration-store.js?v=33',
-  './manifest.json?v=33'
+  './?v=34',
+  './index.html?v=34',
+  './assets/styles/main.css?v=34',
+  './assets/scripts/sign-library.js?v=34',
+  './assets/scripts/sign-lookup.js?v=34',
+  './assets/scripts/sign-render.js?v=34',
+  './assets/scripts/app.js?v=34',
+  './assets/scripts/learning.js?v=34',
+  './assets/scripts/practice.js?v=34',
+  './assets/scripts/calibration-store.js?v=34',
+  './manifest.json?v=34'
 ];
 
 self.addEventListener('install', event => {

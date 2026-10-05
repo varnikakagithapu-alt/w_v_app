@@ -81,7 +81,9 @@ function showSigns(useSituationPhraseLookup = false) {
     : findSignLookups(message);
   appendTurn(message, signLookups);
   const matchedWords = signLookups.map(sign => sign.gloss).join(', ');
-  inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready: ${matchedWords}. Open each card to view its source sign video.`;
+  inputStatus.textContent = signLookups.length === 1 && signLookups[0].fallback
+    ? `No curated sign match for "${matchedWords}". Open the result link to search the official dictionary.`
+    : `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready: ${matchedWords}. Open each card to view its source sign video.`;
   textInput.value = '';
   updateCount();
   textInput.focus();
