@@ -27,7 +27,11 @@ The site is a static app and can be published with GitHub Pages:
 2. Push or merge changes into `main`. The **Deploy to GitHub Pages** workflow publishes the app.
 3. Open `https://varnikakagithapu-alt.github.io/w_v_app/` on a phone or computer.
 
-The deployed site uses HTTPS, which is required by mobile browsers for camera access and some speech features. Camera access and recorded practice samples remain on each user's device.
+The deployed site uses HTTPS, which is required by mobile browsers for camera access and some speech features. Speech recognition is provided by the browser and may require an internet connection. The app can capture a temporary microphone recording for replay; it stays in page memory and is discarded when cleared or when the page is refreshed. Camera access and recorded practice samples remain on each user's device.
+
+## Speech input
+
+Use **Start microphone** to see live transcription, then **Stop microphone** to review and edit the recognized text before sending it for sign lookup. **Replay audio** is enabled when the browser supports local microphone recording. **Clear text** removes the draft and its temporary replay recording. Speech recognition and audio recording require microphone permission; browser support varies.
 
 ## Data policy
 

@@ -27,7 +27,7 @@ function createPreviewFrame(sign) {
     ? `ISL sign video for ${sign.gloss}`
     : `Official ISLRTC preview for ${sign.gloss}`;
   frame.referrerPolicy = 'no-referrer';
-  frame.allow = '';
+  frame.allow = 'autoplay; fullscreen; picture-in-picture';
   frame.hidden = true;
 
   let settled = false;
@@ -47,6 +47,12 @@ function createPreviewFrame(sign) {
   });
 
   wrap.append(status, frame);
+  if (sign.driveVideoId) {
+    const playbackHint = document.createElement('p');
+    playbackHint.className = 'sign-preview-hint';
+    playbackHint.textContent = 'Press Play in the video to start it. If it does not respond, use "Open video in Drive" below.';
+    wrap.append(playbackHint);
+  }
   return wrap;
 }
 

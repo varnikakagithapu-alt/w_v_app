@@ -1,6 +1,6 @@
 import { findSignLookups, getAliasForLanguage } from './sign-lookup.js';
 import { createSignCard } from './sign-render.js';
-import { startListening } from './app.js';
+import { clearSpeechInput, replaySpeechAudio, startListening } from './app.js';
 import { addSample, getAllSamples, getCalibrationStatus } from './calibration-store.js';
 
 const SAMPLES_PER_WORD = 5;
@@ -27,6 +27,8 @@ const u2TextInput = document.querySelector('#u2TextInput');
 const u2LanguageSelect = document.querySelector('#u2LanguageSelect');
 const u2MicButton = document.querySelector('#u2MicButton');
 const u2MicLabel = document.querySelector('#u2MicLabel');
+const u2ReplayAudioButton = document.querySelector('#u2ReplayAudioButton');
+const u2ClearTextButton = document.querySelector('#u2ClearTextButton');
 const u2SendButton = document.querySelector('#u2SendButton');
 
 const calibrateButton = document.querySelector('#calibrateButton');
@@ -210,6 +212,12 @@ function handleU1Word(gloss) {
 }
 
 function handleU2Reply() {
+  if (u2MicButton.getAttribute('aria-pressed') === 'true') {
+    u2MicButton.click();
+    u2Status.textContent = 'Stopping the microphone. Press Send again when transcription is finished.';
+    return;
+  }
+
   const message = u2TextInput.value.trim();
   if (!message) {
     u2Status.textContent = 'Type or speak a reply first.';
@@ -319,7 +327,16 @@ u2MicButton.addEventListener('click', () => startListening({
   input: u2TextInput,
   micButton: u2MicButton,
   micLabel: u2MicLabel,
+  replayButton: u2ReplayAudioButton,
   languageSelect: u2LanguageSelect,
+  statusEl: u2Status,
+}));
+u2ReplayAudioButton.addEventListener('click', () => replaySpeechAudio(u2TextInput, u2Status));
+u2ClearTextButton.addEventListener('click', () => clearSpeechInput({
+  input: u2TextInput,
+  micButton: u2MicButton,
+  micLabel: u2MicLabel,
+  replayButton: u2ReplayAudioButton,
   statusEl: u2Status,
 }));
 

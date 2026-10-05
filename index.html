@@ -48,8 +48,18 @@
           <label class="select-label">Input language<select id="languageSelect" aria-label="Input language"><option value="en-IN">English</option><option value="hi-IN">हिन्दी (Hindi)</option><option value="te-IN">తెలుగు (Telugu)</option><option value="kn-IN">ಕನ್ನಡ (Kannada)</option><option value="ta-IN">தமிழ் (Tamil)</option></select></label>
           <button class="text-button" id="clearButton" type="button">Clear chat</button>
         </div>
-        <div class="input-panel"><label class="sr-only" for="textInput">Message to show in Indian Sign Language</label><textarea id="textInput" rows="2" maxlength="280" placeholder="Type a message, for example: Hello, I need help."></textarea><div class="input-actions"><button class="button button-quiet" id="micButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="micLabel">Speak</span></button><span class="word-count" id="wordCount">0 / 280</span><button class="button button-primary" id="showButton" type="button">Send <span aria-hidden="true">→</span></button></div></div>
-        <p class="helper" id="inputStatus" aria-live="polite">You can edit speech recognition before looking up signs.</p>
+        <div class="input-panel">
+          <label class="sr-only" for="textInput">Message to show in Indian Sign Language</label>
+          <textarea id="textInput" rows="2" maxlength="280" aria-describedby="inputStatus" placeholder="Type a message, for example: Hello, I need help."></textarea>
+          <div class="input-actions">
+            <button class="button button-quiet" id="micButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="micLabel">Start microphone</span></button>
+            <button class="button button-quiet" id="replayAudioButton" type="button" disabled>Replay audio</button>
+            <button class="button button-quiet" id="clearTextButton" type="button">Clear text</button>
+            <span class="word-count" id="wordCount">0 / 280</span>
+            <button class="button button-primary" id="showButton" type="button">Send <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+        <p class="helper" id="inputStatus" aria-live="polite">Start the microphone for live transcription. Stop it to review or edit your words; replay is available when supported.</p>
       </div>
     </section>
     <section class="practice" id="practiceMode" aria-labelledby="practice-title" hidden>
@@ -115,7 +125,9 @@
             <label class="sr-only" for="u2TextInput">U2 reply</label>
             <textarea id="u2TextInput" rows="2" maxlength="280" placeholder="Type your reply…"></textarea>
             <div class="input-actions">
-              <button class="button button-quiet" id="u2MicButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="u2MicLabel">Speak</span></button>
+              <button class="button button-quiet" id="u2MicButton" type="button" aria-pressed="false"><span aria-hidden="true">◉</span> <span id="u2MicLabel">Start microphone</span></button>
+              <button class="button button-quiet" id="u2ReplayAudioButton" type="button" disabled>Replay audio</button>
+              <button class="button button-quiet" id="u2ClearTextButton" type="button">Clear text</button>
               <button class="button button-primary" id="u2SendButton" type="button">Send <span aria-hidden="true">→</span></button>
             </div>
           </div>
