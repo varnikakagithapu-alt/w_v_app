@@ -120,9 +120,23 @@ export function findSignLookups(message) {
   return phrase ? [{ kind: 'search', gloss: phrase, category: 'Search this phrase in the official dictionary', fallback: true }] : [];
 }
 
+const NON_CONTENT_SITUATION_WORDS = new Set([
+  'a', 'am', 'an', 'are', 'do', 'does', 'have', 'i', 'is', 'the', 'where',
+]);
+
+function hasContentWordAlias(sign, normalizedMessage) {
+  return flattenAliases(sign.aliases).some(alias => {
+    const normalizedAlias = alias.toLocaleLowerCase();
+    return matchesAlias(normalizedMessage, normalizedAlias) &&
+      normalizedAlias.split(/\s+/).some(word => !NON_CONTENT_SITUATION_WORDS.has(word));
+  });
+}
+
 export function findSituationPhraseLookups(message) {
-  const exactMatches = findSignLookups(message);
-  if (exactMatches.length && exactMatches.every(sign => sign.kind === 'match')) return exactMatches;
+  const normalizedMessage = message.toLocaleLowerCase();
+  const exactMatches = findSignLookups(message)
+    .filter(sign => sign.kind === 'match' && hasContentWordAlias(sign, normalizedMessage));
+  if (exactMatches.length) return exactMatches;
 
   const phrase = message.trim();
   return phrase
