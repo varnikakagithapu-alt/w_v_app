@@ -1,4 +1,4 @@
-import { findSignLookups } from './sign-lookup.js';
+import { findSignLookups, findSituationPhraseLookups } from './sign-lookup.js';
 import { createSignCard } from './sign-render.js';
 
 const textInput = document.querySelector('#textInput');
@@ -40,9 +40,13 @@ function appendTurn(message, signLookups) {
   cards.append(...signLookups.map(createSignCard));
   const resultsNote = document.createElement('p');
   resultsNote.className = 'msg-note msg-results-note';
-  resultsNote.textContent = signLookups.length > 1
-    ? `Matched words: ${signLookups.map(sign => sign.gloss).join(', ')}. Scroll down to view each video.`
-    : `Showing video for ${signLookups[0].gloss}.`;
+  if (signLookups.length > 1) {
+    resultsNote.textContent = `Matched words: ${signLookups.map(sign => sign.gloss).join(', ')}. Scroll down to view each video.`;
+  } else if (signLookups[0].fallback) {
+    resultsNote.textContent = `No curated sign match for "${signLookups[0].gloss}". Search the official dictionary using the link below.`;
+  } else {
+    resultsNote.textContent = `Showing sign lookup for ${signLookups[0].gloss}.`;
+  }
   const disclaimer = document.createElement('p');
   disclaimer.className = 'msg-disclaimer';
   const disclaimerIcon = document.createElement('span');
@@ -58,7 +62,7 @@ function appendTurn(message, signLookups) {
   scrollResultsIntoView(resultsNote);
 }
 
-function showSigns() {
+function showSigns(useSituationPhraseLookup = false) {
   if (listeningSessions.get(textInput)?.active) {
     micButton.click();
     inputStatus.textContent = 'Stopping the microphone. Press Send again when transcription is finished.';
@@ -72,7 +76,9 @@ function showSigns() {
     return;
   }
 
-  const signLookups = findSignLookups(message);
+  const signLookups = useSituationPhraseLookup
+    ? findSituationPhraseLookups(message)
+    : findSignLookups(message);
   appendTurn(message, signLookups);
   const matchedWords = signLookups.map(sign => sign.gloss).join(', ');
   inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready: ${matchedWords}. Open each card to view its source sign video.`;
@@ -96,12 +102,12 @@ function populateWordSuggestions() {
   wordSuggestions.replaceChildren(fragment);
 }
 
-function handleSuggestionClick(event) {
+function handleSuggestionClick(event, isSituationPhrase = false) {
   const button = event.target.closest('button[data-phrase]');
   if (!button) return;
   textInput.value = button.dataset.phrase;
   updateCount();
-  showSigns();
+  showSigns(isSituationPhrase);
 }
 
 function releaseRecordedAudio(session) {
@@ -384,7 +390,7 @@ clearTextButton.addEventListener('click', () => clearSpeechInput({
   replayButton: replayAudioButton,
   statusEl: inputStatus,
 }));
-phraseSuggestions.addEventListener('click', handleSuggestionClick);
+phraseSuggestions.addEventListener('click', event => handleSuggestionClick(event, true));
 wordSuggestions.addEventListener('click', handleSuggestionClick);
 
 populateWordSuggestions();

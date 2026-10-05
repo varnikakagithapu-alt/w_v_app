@@ -119,3 +119,13 @@ export function findSignLookups(message) {
   const phrase = message.trim().split(/[\s,!.?;:]+/).slice(0, 4).join(' ');
   return phrase ? [{ kind: 'search', gloss: phrase, category: 'Search this phrase in the official dictionary', fallback: true }] : [];
 }
+
+export function findSituationPhraseLookups(message) {
+  const exactMatches = findSignLookups(message);
+  if (exactMatches.length && exactMatches.every(sign => sign.kind === 'match')) return exactMatches;
+
+  const phrase = message.trim();
+  return phrase
+    ? [{ kind: 'search', gloss: phrase, category: 'Search this phrase in the official dictionary', fallback: true }]
+    : [];
+}

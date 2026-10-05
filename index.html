@@ -18,6 +18,55 @@
       <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Curated results link to their matching sign videos or the official dictionary search.</p><button class="button button-primary hero-quiz-button" id="quizLaunchButton" type="button">Take the sign quiz <span aria-hidden="true">→</span></button></div>
       <aside class="hero-card"><span class="mini-label">How it works</span><ol><li><span>1</span> Speak or type a message</li><li><span>2</span> Review the recognised text</li><li><span>3</span> Open each ISL sign video</li></ol></aside>
     </section>
+    <section class="situation-shortcuts" aria-labelledby="situations-title">
+      <div class="situations-heading">
+        <div>
+          <p class="eyebrow">Useful phrases</p>
+          <h2 id="situations-title">Quick access by situation</h2>
+        </div>
+        <p>Choose a phrase to look up matching ISL signs or search the official dictionary.</p>
+      </div>
+      <div class="situation-grid" id="phraseSuggestions">
+        <section class="situation-card" aria-labelledby="college-situations-title">
+          <h3 id="college-situations-title"><span aria-hidden="true">🏫</span> College</h3>
+          <div class="situation-phrases">
+            <button type="button" data-phrase="I don't understand">I don't understand</button>
+            <button type="button" data-phrase="Please repeat">Please repeat</button>
+            <button type="button" data-phrase="I need help">I need help</button>
+            <button type="button" data-phrase="Where is the classroom?">Where is the classroom?</button>
+            <button type="button" data-phrase="I have a doubt">I have a doubt</button>
+          </div>
+        </section>
+        <section class="situation-card" aria-labelledby="hospital-situations-title">
+          <h3 id="hospital-situations-title"><span aria-hidden="true">🏥</span> Hospital</h3>
+          <div class="situation-phrases">
+            <button type="button" data-phrase="I am feeling sick">I am feeling sick</button>
+            <button type="button" data-phrase="I need a doctor">I need a doctor</button>
+            <button type="button" data-phrase="Where is the emergency room?">Where is the emergency room?</button>
+            <button type="button" data-phrase="I need medicine">I need medicine</button>
+          </div>
+        </section>
+        <section class="situation-card" aria-labelledby="travel-situations-title">
+          <h3 id="travel-situations-title"><span aria-hidden="true">🚉</span> Travel</h3>
+          <div class="situation-phrases">
+            <button type="button" data-phrase="Where is the station?">Where is the station?</button>
+            <button type="button" data-phrase="Where is the bus stop?">Where is the bus stop?</button>
+            <button type="button" data-phrase="I need a ticket">I need a ticket</button>
+            <button type="button" data-phrase="Where is the restroom?">Where is the restroom?</button>
+          </div>
+        </section>
+        <section class="situation-card" aria-labelledby="daily-situations-title">
+          <h3 id="daily-situations-title"><span aria-hidden="true">🛒</span> Daily life</h3>
+          <div class="situation-phrases">
+            <button type="button" data-phrase="How much?">How much?</button>
+            <button type="button" data-phrase="I need this">I need this</button>
+            <button type="button" data-phrase="Thank you">Thank you</button>
+            <button type="button" data-phrase="Please wait">Please wait</button>
+          </div>
+        </section>
+      </div>
+      <p class="situation-note">Phrase lookups are references, not word-for-word signed translations. Unmatched phrases open an official dictionary search.</p>
+    </section>
     <section class="chat" id="chat" aria-labelledby="chat-title">
       <h2 id="chat-title" class="sr-only">SignBridge conversation</h2>
       <div id="transcript" class="transcript">
@@ -27,16 +76,6 @@
         </article>
       </div>
       <div class="suggestions">
-        <div class="suggestion-group">
-          <h3>Try a sentence</h3>
-          <p>Tap a sentence to show videos for each matching word.</p>
-          <div class="quick-chips" id="phraseSuggestions">
-            <button type="button" data-phrase="Hello, child">Hello, child</button>
-            <button type="button" data-phrase="Please wait">Please wait</button>
-            <button type="button" data-phrase="Good evening, doctor">Good evening, doctor</button>
-            <button type="button" data-phrase="I know the game is expensive">I know the game is expensive</button>
-          </div>
-        </div>
         <div class="suggestion-group">
           <h3>Words with videos</h3>
           <p>Choose an example, or type any supported word or sentence, then press Send.</p>

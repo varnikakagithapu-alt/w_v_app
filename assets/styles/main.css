@@ -22,6 +22,12 @@ h2{font-size:27px}
 .hero-card ol{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:17px}
 .hero-card li{display:flex;gap:12px;align-items:center;font-size:15px;font-weight:500}
 .hero-card li span{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--soft);color:var(--blue);font-size:12px}
+.situation-shortcuts{margin-top:24px;padding:20px;background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 32px #1a397111}
+.situations-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px}
+.situations-heading .eyebrow{margin-bottom:6px}
+.situations-heading h2{font-size:22px}
+.situations-heading > p{max-width:390px;margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.situation-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
 
 /* Chat panel */
 .chat{margin-top:24px;display:flex;flex-direction:column;height:min(680px,75vh);overflow:hidden}
@@ -63,6 +69,13 @@ h2{font-size:27px}
 .quick-chips{display:flex;flex-wrap:wrap;gap:8px}
 .quick-chips button{border:1px solid #cbd7eb;background:#fff;color:#33415e;border-radius:999px;padding:7px 12px;font-size:12px}
 .quick-chips button:hover{border-color:var(--blue);color:var(--blue);background:var(--soft)}
+.situation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.situation-card{min-width:0;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcff}
+.situation-card h3{font-size:14px;letter-spacing:0;margin:0 0 9px}
+.situation-card h3 span{margin-right:4px}
+.situation-phrases{display:flex;flex-wrap:wrap;gap:6px}
+.situation-phrases button{border:1px solid #cbd7eb;background:#fff;color:#33415e;border-radius:999px;padding:7px 10px;font-size:12px;text-align:left}
+.situation-phrases button:hover{border-color:var(--blue);color:var(--blue);background:var(--soft)}
 .word-suggestions{max-height:72px;overflow-y:auto}
 .chat.has-results .suggestions{display:none}
 .chat.has-results{height:auto;max-height:none;overflow:visible}
@@ -173,6 +186,8 @@ footer a{color:var(--blue)}
   .msg{max-width:92%}
   .msg-assistant{max-width:94%}
   .suggestions{padding:10px 14px 12px}
+  .situation-grid{grid-template-columns:1fr}
+  .situations-heading{align-items:flex-start;flex-direction:column;gap:6px}
   .practice-grid{grid-template-columns:1fr}
   .quiz-options{grid-template-columns:1fr}
   .language-note{gap:5px;font-size:12px}
