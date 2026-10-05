@@ -13,12 +13,12 @@
 </head>
 <body>
   <main class="shell">
-    <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="practiceModeButton" type="button">Practice conversation</button></div></header>
+    <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="learnModeButton" type="button">📚 Learn ISL</button><button class="text-button" id="practiceModeButton" type="button">Practice conversation</button></div></header>
     <section class="hero" id="top">
       <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Curated results link to their matching sign videos or the official dictionary search.</p></div>
       <aside class="hero-card"><span class="mini-label">How it works</span><ol><li><span>1</span> Speak or type a message</li><li><span>2</span> Review the recognised text</li><li><span>3</span> Open each ISL sign video</li></ol></aside>
     </section>
-    <section class="chat" aria-labelledby="chat-title">
+    <section class="chat" id="chat" aria-labelledby="chat-title">
       <h2 id="chat-title" class="sr-only">SignBridge conversation</h2>
       <div id="transcript" class="transcript">
         <article class="msg msg-assistant" id="greetingMsg">
@@ -61,6 +61,32 @@
         </div>
         <p class="helper" id="inputStatus" aria-live="polite">Start the microphone for live transcription. Stop it to review or edit your words; replay is available when supported.</p>
       </div>
+    </section>
+    <section class="learning-mode" id="learningMode" aria-labelledby="learning-title" hidden>
+      <div class="learning-head">
+        <div>
+          <p class="eyebrow">Learn at your pace</p>
+          <h2 id="learning-title">Learn Indian Sign Language</h2>
+          <p class="learning-intro">Choose a topic, explore a word, then practise recalling the sign.</p>
+        </div>
+        <button class="text-button" id="learningExitButton" type="button">Back to assistant</button>
+      </div>
+      <nav class="learning-categories" id="learningCategories" aria-label="ISL learning sections"></nav>
+      <article class="learning-lesson" aria-live="polite">
+        <div class="learning-lesson-meta">
+          <p class="eyebrow" id="learningCategoryLabel"></p>
+          <span id="learningProgress"></span>
+        </div>
+        <h3 class="learning-word" id="learningWord"></h3>
+        <p class="learning-prompt" id="learningPrompt"></p>
+        <div class="learning-sign" id="learningSign"></div>
+        <div class="learning-actions">
+          <button class="button button-quiet" id="watchSignButton" type="button">▶ Watch sign</button>
+          <button class="button button-quiet" id="practiceWordButton" type="button">Practice</button>
+          <button class="button button-primary" id="nextWordButton" type="button">Next word →</button>
+        </div>
+      </article>
+      <p class="learning-source-note">Signs without a verified in-app video open the official ISLRTC dictionary for you to check. Alphabet photos are community-sourced fingerspelling references, not whole-word signs.</p>
     </section>
     <section class="practice" id="practiceMode" aria-labelledby="practice-title" hidden>
       <div class="practice-head">
@@ -161,6 +187,7 @@
   </main>
   <script src="assets/scripts/sign-library.js"></script>
   <script type="module" src="assets/scripts/app.js"></script>
+  <script type="module" src="assets/scripts/learning.js"></script>
   <script type="module" src="assets/scripts/practice.js"></script>
 </body>
 </html>
