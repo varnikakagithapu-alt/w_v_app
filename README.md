@@ -4,6 +4,8 @@ A browser-based assistant that accepts English, Hindi, Telugu, Kannada, and Tami
 
 The **Learn ISL** section provides self-paced lessons across the alphabet, numbers, greetings, family, education, emergency, food, places, and common conversations. It uses official dictionary searches when a curated in-app video is not available.
 
+The **Practice / Quiz** section includes a 10-question ISL sign quiz with randomized videos and answer choices, immediate feedback, and a score based on correct first attempts. The experimental two-person practice conversation remains available in the same section.
+
 ## Project structure
 
 ```

@@ -13,7 +13,7 @@
 </head>
 <body>
   <main class="shell">
-    <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="learnModeButton" type="button">📚 Learn ISL</button><button class="text-button" id="practiceModeButton" type="button">Practice conversation</button></div></header>
+    <header class="topbar"><a class="brand" href="#top"><span class="brand-mark">SB</span>SignBridge</a><div class="language-note"><span class="status-dot"></span> ISL visual assistant<button class="text-button" id="learnModeButton" type="button">📚 Learn ISL</button><button class="text-button" id="practiceModeButton" type="button">Practice / Quiz</button></div></header>
     <section class="hero" id="top">
       <div><p class="eyebrow">English · हिन्दी · తెలుగు · ಕನ್ನಡ · தமிழ்</p><h1>Say it. <span>Show it in ISL.</span></h1><p class="lead">Turn a typed or spoken message into Indian Sign Language lookups. Curated results link to their matching sign videos or the official dictionary search.</p></div>
       <aside class="hero-card"><span class="mini-label">How it works</span><ol><li><span>1</span> Speak or type a message</li><li><span>2</span> Review the recognised text</li><li><span>3</span> Open each ISL sign video</li></ol></aside>
@@ -92,11 +92,38 @@
       <div class="practice-head">
         <div>
           <p class="eyebrow">Testing mode</p>
-          <h2 id="practice-title">Practice conversation</h2>
+          <h2 id="practice-title">Practice / Quiz</h2>
         </div>
         <button class="text-button" id="practiceExitButton" type="button">Back to chat</button>
       </div>
 
+      <div class="practice-tabs" role="tablist" aria-label="Practice activities">
+        <button class="practice-tab is-active" id="quizTab" type="button" role="tab" aria-selected="true" aria-controls="quizPanel">Sign quiz</button>
+        <button class="practice-tab" id="conversationTab" type="button" role="tab" aria-selected="false" aria-controls="practiceConversationPanel">Practice conversation</button>
+      </div>
+
+      <section class="quiz-panel" id="quizPanel" role="tabpanel" aria-labelledby="quizTab">
+        <div class="quiz-heading">
+          <div>
+            <p class="eyebrow">Learn ISL signs</p>
+            <h3 id="quizQuestion">What does this sign mean?</h3>
+          </div>
+          <div class="quiz-score-wrap">
+            <p class="quiz-score" id="quizScore" aria-live="polite">Score: 0/10</p>
+            <p class="quiz-score-note">Score counts correct first attempts.</p>
+          </div>
+        </div>
+        <p class="quiz-progress" id="quizProgress">Question 1 of 10</p>
+        <div class="quiz-video" id="quizVideo"></div>
+        <div class="quiz-options" id="quizOptions" role="group" aria-label="Answer choices"></div>
+        <p class="quiz-feedback" id="quizFeedback" aria-live="polite"></p>
+        <div class="quiz-actions">
+          <button class="button button-primary" id="quizNextButton" type="button" disabled>Next question</button>
+          <button class="button button-primary" id="quizRestartButton" type="button" hidden>Play again</button>
+        </div>
+      </section>
+
+      <div id="practiceConversationPanel" role="tabpanel" aria-labelledby="conversationTab" hidden>
       <p class="msg-disclaimer practice-disclaimer">
         <span aria-hidden="true">i</span>
         <span>Experimental, same-device test mode. Sign recognition only works for the curated words in this app, requires you to record your own reference samples first, only reads a single held hand pose (not motion or two-handed signs), and can misread poses it hasn't seen. Manual word selection always works without the camera. See <a href="docs/SIGN_RECOGNITION.md" target="_blank" rel="noopener noreferrer">how this works and its limits</a>.</span>
@@ -164,6 +191,7 @@
         <article class="msg msg-assistant" id="practiceGreetingMsg">
           <p class="msg-greeting">This shared log fills in as U1 signs and U2 replies, so U1 can review the words for each sign afterward.</p>
         </article>
+      </div>
       </div>
     </section>
 

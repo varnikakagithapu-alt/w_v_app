@@ -11,6 +11,18 @@ const practiceExitButton = document.querySelector('#practiceExitButton');
 const hero = document.querySelector('#top');
 const chat = document.querySelector('#chat');
 const learningMode = document.querySelector('#learningMode');
+const quizTab = document.querySelector('#quizTab');
+const conversationTab = document.querySelector('#conversationTab');
+const quizPanel = document.querySelector('#quizPanel');
+const practiceConversationPanel = document.querySelector('#practiceConversationPanel');
+const quizQuestion = document.querySelector('#quizQuestion');
+const quizScore = document.querySelector('#quizScore');
+const quizProgress = document.querySelector('#quizProgress');
+const quizVideo = document.querySelector('#quizVideo');
+const quizOptions = document.querySelector('#quizOptions');
+const quizFeedback = document.querySelector('#quizFeedback');
+const quizNextButton = document.querySelector('#quizNextButton');
+const quizRestartButton = document.querySelector('#quizRestartButton');
 
 const videoWrap = document.querySelector('#videoWrap');
 const sharedCameraVideo = document.querySelector('#sharedCameraVideo');
@@ -52,6 +64,133 @@ let recognitionEnginePromise = null;
 let stopDetectionLoop = null;
 let samplesByGloss = new Map();
 let currentCalibrationGloss = null;
+let quizQuestions = [];
+let quizQuestionIndex = 0;
+let quizCorrectAnswers = 0;
+let currentQuestionHadIncorrectAnswer = false;
+
+const QUIZ_LENGTH = 10;
+const QUIZ_OPTION_COUNT = 4;
+
+function shuffle(items) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function getQuizLabel(sign) {
+  const label = getAliasForLanguage(sign.gloss, 'en') || sign.gloss.replaceAll('-', ' ');
+  return label.replace(/\b\w/g, character => character.toLocaleUpperCase());
+}
+
+function renderQuizQuestion() {
+  const sign = quizQuestions[quizQuestionIndex];
+  quizQuestion.textContent = 'What does this sign mean?';
+  quizProgress.textContent = `Question ${quizQuestionIndex + 1} of ${QUIZ_LENGTH}`;
+  quizScore.textContent = `Score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
+  quizFeedback.textContent = '';
+  quizFeedback.className = 'quiz-feedback';
+  quizNextButton.disabled = true;
+  quizNextButton.hidden = false;
+  quizNextButton.textContent = quizQuestionIndex === QUIZ_LENGTH - 1 ? 'See my score' : 'Next question';
+  quizRestartButton.hidden = true;
+  currentQuestionHadIncorrectAnswer = false;
+
+  const videoCard = createSignCard({ ...sign, kind: 'match' }, quizQuestionIndex);
+  videoCard.querySelector('.card-number').remove();
+  videoCard.querySelector('h3').remove();
+  videoCard.querySelectorAll(':scope > p').forEach(paragraph => {
+    if (!paragraph.classList.contains('sign-card-note')) paragraph.remove();
+  });
+  const frame = videoCard.querySelector('iframe');
+  if (frame) frame.title = `ISL sign video for question ${quizQuestionIndex + 1}`;
+  quizVideo.replaceChildren(videoCard);
+
+  const correctOption = getQuizLabel(sign);
+  const optionLabels = new Set([correctOption]);
+  const distractors = [];
+  for (const entry of shuffle(window.SIGN_LIBRARY.filter(item => item.gloss !== sign.gloss))) {
+    const label = getQuizLabel(entry);
+    if (optionLabels.has(label)) continue;
+    optionLabels.add(label);
+    distractors.push(label);
+    if (distractors.length === QUIZ_OPTION_COUNT - 1) break;
+  }
+  const options = shuffle([correctOption, ...distractors]);
+  quizOptions.replaceChildren();
+  options.forEach(option => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'quiz-option';
+    button.textContent = option;
+    button.addEventListener('click', () => answerQuizQuestion(button, option === correctOption, correctOption));
+    quizOptions.append(button);
+  });
+}
+
+function answerQuizQuestion(selectedButton, isCorrect, correctOption) {
+  if (quizNextButton.disabled === false || quizNextButton.hidden) return;
+
+  if (!isCorrect) {
+    currentQuestionHadIncorrectAnswer = true;
+    selectedButton.disabled = true;
+    selectedButton.classList.add('is-incorrect');
+    quizFeedback.textContent = 'Try again.';
+    quizFeedback.classList.add('is-incorrect');
+    return;
+  }
+
+  quizOptions.querySelectorAll('.quiz-option').forEach(button => {
+    button.disabled = true;
+    if (button.textContent === correctOption) button.classList.add('is-correct');
+  });
+  if (!currentQuestionHadIncorrectAnswer) quizCorrectAnswers += 1;
+  quizFeedback.textContent = 'Correct! 🎉';
+  quizFeedback.classList.add('is-correct');
+  quizScore.textContent = `Score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
+  quizNextButton.disabled = false;
+}
+
+function finishQuiz() {
+  quizQuestion.textContent = 'Quiz complete!';
+  quizProgress.textContent = 'You answered all 10 questions.';
+  quizVideo.replaceChildren();
+  quizOptions.replaceChildren();
+  quizFeedback.textContent = `Final score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
+  quizFeedback.className = 'quiz-feedback quiz-final-score';
+  quizNextButton.hidden = true;
+  quizRestartButton.hidden = false;
+}
+
+function startQuiz() {
+  quizQuestions = shuffle(window.SIGN_LIBRARY).slice(0, QUIZ_LENGTH);
+  quizQuestionIndex = 0;
+  quizCorrectAnswers = 0;
+  renderQuizQuestion();
+}
+
+function activatePracticeTab(tab) {
+  const showQuiz = tab === 'quiz';
+  quizTab.classList.toggle('is-active', showQuiz);
+  quizTab.setAttribute('aria-selected', String(showQuiz));
+  conversationTab.classList.toggle('is-active', !showQuiz);
+  conversationTab.setAttribute('aria-selected', String(!showQuiz));
+  quizPanel.hidden = !showQuiz;
+  practiceConversationPanel.hidden = showQuiz;
+
+  if (showQuiz) {
+    if (mediaStream) {
+      stopCamera();
+      u1Status.textContent = 'Camera off while the quiz is active.';
+    }
+    return;
+  }
+  populateManualSelect();
+  refreshCalibrationStatus();
+}
 
 function glossList() {
   return window.SIGN_LIBRARY.map(sign => sign.gloss);
@@ -308,8 +447,8 @@ practiceModeButton.addEventListener('click', () => {
   chat.hidden = true;
   learningMode.hidden = true;
   practiceMode.hidden = false;
-  populateManualSelect();
-  refreshCalibrationStatus();
+  startQuiz();
+  activatePracticeTab('quiz');
   practiceMode.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
@@ -319,6 +458,18 @@ practiceExitButton.addEventListener('click', () => {
   hero.hidden = false;
   chat.hidden = false;
 });
+
+quizTab.addEventListener('click', () => activatePracticeTab('quiz'));
+conversationTab.addEventListener('click', () => activatePracticeTab('conversation'));
+quizNextButton.addEventListener('click', () => {
+  if (quizQuestionIndex === QUIZ_LENGTH - 1) {
+    finishQuiz();
+    return;
+  }
+  quizQuestionIndex += 1;
+  renderQuizQuestion();
+});
+quizRestartButton.addEventListener('click', startQuiz);
 
 toggleU1.addEventListener('click', () => setActivePanel('u1'));
 toggleU2.addEventListener('click', () => setActivePanel('u2'));
