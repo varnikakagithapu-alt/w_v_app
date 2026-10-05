@@ -20,14 +20,6 @@ function flattenAliases(aliases) {
   return Object.values(aliases).flat();
 }
 
-function matchesAlias(message, alias) {
-  const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(
-    `(?:^|[^\\p{L}\\p{N}\\p{M}])${escaped}(?=$|[^\\p{L}\\p{N}\\p{M}])`,
-    'u'
-  ).test(message);
-}
-
 function levenshteinDistance(a, b) {
   const rows = a.length + 1;
   const cols = b.length + 1;
@@ -47,16 +39,11 @@ function levenshteinDistance(a, b) {
   return distance[rows - 1][cols - 1];
 }
 
-function fuzzyMatchThreshold(length) {
-  if (length <= 4) return 1;
-  if (length <= 8) return 2;
-  return 3;
-}
-
 const LATIN_WORD_PATTERN = /^[a-z]+$/;
 
 function findFuzzyMatches(normalized) {
-  const tokens = normalized.split(/[\s,!.?;:]+/).filter(token => LATIN_WORD_PATTERN.test(token));
+  const tokens = normalized.split(/[\s,!.?;:]+/)
+    .filter(token => LATIN_WORD_PATTERN.test(token) && token.length >= 3 && !LOOKUP_STOP_WORDS.has(token));
   if (!tokens.length) return [];
 
   const candidates = [];
@@ -65,9 +52,9 @@ function findFuzzyMatches(normalized) {
     for (const alias of flattenAliases(sign.aliases)) {
       if (!LATIN_WORD_PATTERN.test(alias)) continue;
       for (const token of tokens) {
-        const threshold = fuzzyMatchThreshold(Math.max(token.length, alias.length));
+        if (Math.abs(token.length - alias.length) > 1) continue;
         const distance = levenshteinDistance(token, alias);
-        if (distance <= threshold && (!best || distance < best.distance)) {
+        if (distance <= 1 && (!best || distance < best.distance)) {
           best = { distance, matchedWord: token };
         }
       }
@@ -76,7 +63,10 @@ function findFuzzyMatches(normalized) {
   }
 
   candidates.sort((a, b) => a.distance - b.distance);
-  return candidates.filter((sign, index) =>
+  const closest = candidates.filter(sign => sign.distance === candidates[0].distance);
+  if (closest.length > 1) return [];
+
+  return closest.filter((sign, index) =>
     candidates.findIndex(match => match.gloss === sign.gloss) === index
   );
 }
@@ -85,9 +75,9 @@ const FINGERSPELL_LETTERS = new Set('abcdefghijklmnopqrstuvwxyz'.split(''));
 const FINGERSPELL_MAX_LENGTH = 14;
 
 function findFingerspellEntry(message) {
-  const [firstToken] = message.trim().split(/[\s,!.?;:]+/);
-  if (!firstToken) return null;
-  const word = firstToken.toLocaleLowerCase();
+  const tokens = message.trim().split(/[\s,!.?;:]+/).filter(Boolean);
+  if (tokens.length !== 1) return null;
+  const [word] = tokens.map(token => token.toLocaleLowerCase());
   if (!LATIN_WORD_PATTERN.test(word) || word.length > FINGERSPELL_MAX_LENGTH) return null;
 
   const letters = word.split('').map(letter => ({
@@ -100,43 +90,113 @@ function findFingerspellEntry(message) {
   return { kind: 'fingerspell', word, letters };
 }
 
-export function findSignLookups(message) {
-  const normalized = message.toLocaleLowerCase();
-  const exactMatches = window.SIGN_LIBRARY.filter(sign =>
-    flattenAliases(sign.aliases).some(alias => matchesAlias(normalized, alias.toLocaleLowerCase()))
-  ).map(sign => ({ ...sign, kind: 'match' }));
-  const uniqueExact = exactMatches.filter((sign, index) =>
-    exactMatches.findIndex(match => match.gloss === sign.gloss) === index
-  );
-  if (uniqueExact.length) return uniqueExact;
+const LOOKUP_STOP_WORDS = new Set([
+  'a', 'am', 'an', 'are', 'be', 'can', 'could', 'did', 'do', 'does', 'for',
+  'have', 'has', 'i', 'in', 'is', 'it', 'me', 'my', 'need', 'of', 'the',
+  'to', 'was', 'were', 'where', 'will', 'would', 'you', 'your',
+]);
 
-  const fuzzyMatches = findFuzzyMatches(normalized);
+function tokenize(text) {
+  return [...text.matchAll(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)]
+    .map(match => match[0].toLocaleLowerCase().replaceAll('’', "'"));
+}
+
+function findExactMatches(message) {
+  const words = tokenize(message);
+  const candidates = [];
+
+  for (const sign of window.SIGN_LIBRARY) {
+    for (const alias of flattenAliases(sign.aliases)) {
+      const aliasWords = tokenize(alias);
+      if (!aliasWords.length) continue;
+
+      for (let start = 0; start <= words.length - aliasWords.length; start += 1) {
+        if (aliasWords.every((word, offset) => word === words[start + offset])) {
+          candidates.push({ sign, start, end: start + aliasWords.length });
+        }
+      }
+    }
+  }
+
+  candidates.sort((a, b) => a.start - b.start || b.end - a.end);
+  const coveredWords = new Set();
+  const matchedSigns = new Map();
+
+  for (const candidate of candidates) {
+    let overlaps = false;
+    for (let index = candidate.start; index < candidate.end; index += 1) {
+      if (coveredWords.has(index)) overlaps = true;
+    }
+    if (overlaps) continue;
+
+    for (let index = candidate.start; index < candidate.end; index += 1) {
+      coveredWords.add(index);
+    }
+    if (!matchedSigns.has(candidate.sign.gloss)) {
+      matchedSigns.set(candidate.sign.gloss, { ...candidate.sign, kind: 'match' });
+    }
+  }
+
+  const unmatchedGroups = [];
+  let currentGroup = [];
+  let previousIndex = -2;
+
+  const flushGroup = () => {
+    if (currentGroup.length) unmatchedGroups.push(currentGroup.join(' '));
+    currentGroup = [];
+    previousIndex = -2;
+  };
+
+  words.forEach((word, index) => {
+    if (coveredWords.has(index) || LOOKUP_STOP_WORDS.has(word)) {
+      flushGroup();
+      return;
+    }
+    if (index !== previousIndex + 1) flushGroup();
+    currentGroup.push(word);
+    previousIndex = index;
+  });
+  flushGroup();
+
+  return {
+    matches: [...matchedSigns.values()],
+    unmatchedGroups,
+  };
+}
+
+function dictionarySearch(phrase) {
+  return {
+    kind: 'search',
+    gloss: phrase,
+    category: 'Search this phrase in the official dictionary',
+    fallback: true,
+  };
+}
+
+export function findSignLookups(message) {
+  const { matches, unmatchedGroups } = findExactMatches(message);
+  if (matches.length) {
+    return [
+      ...matches,
+      ...unmatchedGroups.map(dictionarySearch),
+    ];
+  }
+
+  const normalized = message.toLocaleLowerCase();
+
+  const fuzzyMatches = tokenize(message).length === 1 ? findFuzzyMatches(normalized) : [];
   if (fuzzyMatches.length) return fuzzyMatches;
 
   const fingerspell = findFingerspellEntry(message);
   if (fingerspell) return [fingerspell];
 
-  const phrase = message.trim().split(/[\s,!.?;:]+/).slice(0, 4).join(' ');
-  return phrase ? [{ kind: 'search', gloss: phrase, category: 'Search this phrase in the official dictionary', fallback: true }] : [];
-}
-
-const NON_CONTENT_SITUATION_WORDS = new Set([
-  'a', 'am', 'an', 'are', 'do', 'does', 'have', 'i', 'is', 'the', 'where',
-]);
-
-function hasContentWordAlias(sign, normalizedMessage) {
-  return flattenAliases(sign.aliases).some(alias => {
-    const normalizedAlias = alias.toLocaleLowerCase();
-    return matchesAlias(normalizedMessage, normalizedAlias) &&
-      normalizedAlias.split(/\s+/).some(word => !NON_CONTENT_SITUATION_WORDS.has(word));
-  });
+  const phrase = message.trim();
+  return phrase ? [dictionarySearch(phrase)] : [];
 }
 
 export function findSituationPhraseLookups(message) {
-  const normalizedMessage = message.toLocaleLowerCase();
-  const exactMatches = findSignLookups(message)
-    .filter(sign => sign.kind === 'match' && hasContentWordAlias(sign, normalizedMessage));
-  if (exactMatches.length) return exactMatches;
+  const lookups = findSignLookups(message);
+  if (lookups.some(sign => sign.kind === 'match')) return lookups;
 
   const phrase = message.trim();
   return phrase

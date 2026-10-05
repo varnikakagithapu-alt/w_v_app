@@ -6,7 +6,7 @@ The **Learn ISL** section provides self-paced lessons across the alphabet, numbe
 
 The **Practice / Quiz** section includes a 10-question ISL sign quiz with randomized videos and answer choices, immediate feedback, and a score based on correct first attempts. The experimental two-person practice conversation remains available in the same section.
 
-The assistant also provides quick-access phrase lookups for College, Hospital, Travel, and Daily life. Choose a situation phrase to see matching sign videos or search the official ISLRTC dictionary; phrase lookups are references, not word-for-word signed translations.
+The assistant also provides quick-access phrase lookups for College, Hospital, Travel, and Daily life. Typed messages and situation phrases show every available curated sign match and search the official ISLRTC dictionary for unmatched terms; phrases without curated matches are searched whole. No missing sign video is implied, and phrase lookups are references, not word-for-word signed translations.
 
 ## Project structure
 

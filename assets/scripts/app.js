@@ -40,8 +40,12 @@ function appendTurn(message, signLookups) {
   cards.append(...signLookups.map(createSignCard));
   const resultsNote = document.createElement('p');
   resultsNote.className = 'msg-note msg-results-note';
-  if (signLookups.length > 1) {
-    resultsNote.textContent = `Matched words: ${signLookups.map(sign => sign.gloss).join(', ')}. Scroll down to view each video.`;
+  const curatedLookups = signLookups.filter(sign => sign.kind === 'match' || sign.kind === 'fuzzy');
+  const dictionaryLookups = signLookups.filter(sign => sign.fallback);
+  if (curatedLookups.length && dictionaryLookups.length) {
+    resultsNote.textContent = `Matched signs: ${curatedLookups.map(sign => sign.gloss).join(', ')}. Search the dictionary for: ${dictionaryLookups.map(sign => sign.gloss).join(', ')}.`;
+  } else if (signLookups.length > 1) {
+    resultsNote.textContent = `Results: ${signLookups.map(sign => sign.gloss).join(', ')}. View each card for its sign video, fingerspelling, or dictionary search.`;
   } else if (signLookups[0].fallback) {
     resultsNote.textContent = `No curated sign match for "${signLookups[0].gloss}". Search the official dictionary using the link below.`;
   } else {
@@ -81,9 +85,15 @@ function showSigns(useSituationPhraseLookup = false) {
     : findSignLookups(message);
   appendTurn(message, signLookups);
   const matchedWords = signLookups.map(sign => sign.gloss).join(', ');
-  inputStatus.textContent = signLookups.length === 1 && signLookups[0].fallback
-    ? `No curated sign match for "${matchedWords}". Open the result link to search the official dictionary.`
-    : `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} ready: ${matchedWords}. Open each card to view its source sign video.`;
+  const curatedLookups = signLookups.filter(sign => sign.kind === 'match' || sign.kind === 'fuzzy');
+  const dictionaryLookups = signLookups.filter(sign => sign.fallback);
+  if (curatedLookups.length && dictionaryLookups.length) {
+    inputStatus.textContent = `Sign videos ready: ${curatedLookups.map(sign => sign.gloss).join(', ')}. Dictionary searches ready: ${dictionaryLookups.map(sign => sign.gloss).join(', ')}.`;
+  } else if (dictionaryLookups.length) {
+    inputStatus.textContent = `No curated sign match for "${matchedWords}". Open the result link to search the official dictionary.`;
+  } else {
+    inputStatus.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'result' : 'results'} ready: ${matchedWords}. Review the result card for its sign video or fingerspelling.`;
+  }
   textInput.value = '';
   updateCount();
   textInput.focus();
