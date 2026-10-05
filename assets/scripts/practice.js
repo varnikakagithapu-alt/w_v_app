@@ -6,6 +6,7 @@ import { addSample, getAllSamples, getCalibrationStatus } from './calibration-st
 const SAMPLES_PER_WORD = 5;
 
 const practiceModeButton = document.querySelector('#practiceModeButton');
+const quizLaunchButton = document.querySelector('#quizLaunchButton');
 const practiceMode = document.querySelector('#practiceMode');
 const practiceExitButton = document.querySelector('#practiceExitButton');
 const hero = document.querySelector('#top');
@@ -442,7 +443,7 @@ function closeCalibrationDialog() {
 
 // Wiring
 
-practiceModeButton.addEventListener('click', () => {
+function openPracticeQuiz() {
   hero.hidden = true;
   chat.hidden = true;
   learningMode.hidden = true;
@@ -450,7 +451,10 @@ practiceModeButton.addEventListener('click', () => {
   startQuiz();
   activatePracticeTab('quiz');
   practiceMode.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
+}
+
+practiceModeButton.addEventListener('click', openPracticeQuiz);
+quizLaunchButton.addEventListener('click', openPracticeQuiz);
 
 practiceExitButton.addEventListener('click', () => {
   stopCamera();

@@ -17,6 +17,7 @@ h1 span{color:var(--blue)}
 h2{font-size:27px}
 .lead{color:var(--muted);font-size:17px;line-height:1.65;max-width:660px;margin:22px 0 0}
 .hero-card,.chat{background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 32px #1a397111}
+.hero-quiz-button{margin-top:22px}
 .hero-card{padding:26px}
 .hero-card ol{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:17px}
 .hero-card li{display:flex;gap:12px;align-items:center;font-size:15px;font-weight:500}
@@ -164,7 +165,8 @@ footer a{color:var(--blue)}
 
 @media(max-width:720px){
   .shell{width:min(100% - 28px,1120px)}
-  .topbar{height:70px}
+  .topbar{height:auto;min-height:70px;flex-wrap:wrap;gap:8px;padding:12px 0}
+  .language-note{width:100%;justify-content:space-between;flex-wrap:wrap}
   .hero{grid-template-columns:1fr;gap:27px;padding:42px 0 40px}
   .chat{height:min(72vh,640px)}
   .transcript{padding:18px}
