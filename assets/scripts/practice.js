@@ -1,508 +1,1 @@
-import { findSignLookups, getAliasForLanguage } from './sign-lookup.js';
-import { createSignCard } from './sign-render.js';
-import { clearSpeechInput, replaySpeechAudio, startListening } from './app.js';
-import { addSample, getAllSamples, getCalibrationStatus } from './calibration-store.js';
-
-const SAMPLES_PER_WORD = 5;
-
-const practiceModeButton = document.querySelector('#practiceModeButton');
-const quizLaunchButton = document.querySelector('#quizLaunchButton');
-const practiceMode = document.querySelector('#practiceMode');
-const practiceExitButton = document.querySelector('#practiceExitButton');
-const hero = document.querySelector('#top');
-const chat = document.querySelector('#chat');
-const learningMode = document.querySelector('#learningMode');
-const quizTab = document.querySelector('#quizTab');
-const conversationTab = document.querySelector('#conversationTab');
-const quizPanel = document.querySelector('#quizPanel');
-const practiceConversationPanel = document.querySelector('#practiceConversationPanel');
-const quizQuestion = document.querySelector('#quizQuestion');
-const quizScore = document.querySelector('#quizScore');
-const quizProgress = document.querySelector('#quizProgress');
-const quizVideo = document.querySelector('#quizVideo');
-const quizOptions = document.querySelector('#quizOptions');
-const quizFeedback = document.querySelector('#quizFeedback');
-const quizNextButton = document.querySelector('#quizNextButton');
-const quizRestartButton = document.querySelector('#quizRestartButton');
-
-const videoWrap = document.querySelector('#videoWrap');
-const sharedCameraVideo = document.querySelector('#sharedCameraVideo');
-
-const toggleU1 = document.querySelector('#toggleU1');
-const toggleU2 = document.querySelector('#toggleU2');
-const panelU1 = document.querySelector('#panelU1');
-const panelU2 = document.querySelector('#panelU2');
-const u1Status = document.querySelector('#u1Status');
-const u2Status = document.querySelector('#u2Status');
-const startCameraButton = document.querySelector('#startCameraButton');
-const u1Suggestions = document.querySelector('#u1Suggestions');
-const u1ManualWordSelect = document.querySelector('#u1ManualWordSelect');
-const u1UseWordButton = document.querySelector('#u1UseWordButton');
-
-const u2TextInput = document.querySelector('#u2TextInput');
-const u2LanguageSelect = document.querySelector('#u2LanguageSelect');
-const u2MicButton = document.querySelector('#u2MicButton');
-const u2MicLabel = document.querySelector('#u2MicLabel');
-const u2ReplayAudioButton = document.querySelector('#u2ReplayAudioButton');
-const u2ClearTextButton = document.querySelector('#u2ClearTextButton');
-const u2SendButton = document.querySelector('#u2SendButton');
-
-const calibrateButton = document.querySelector('#calibrateButton');
-const calibrationStatus = document.querySelector('#calibrationStatus');
-const calibrationDialog = document.querySelector('#calibrationDialog');
-const calibrationCloseButton = document.querySelector('#calibrationCloseButton');
-const calibrationWordList = document.querySelector('#calibrationWordList');
-const calibrationCapture = document.querySelector('#calibrationCapture');
-const calibrationVideo = document.querySelector('#calibrationVideo');
-const calibrationProgress = document.querySelector('#calibrationProgress');
-const captureSampleButton = document.querySelector('#captureSampleButton');
-
-const practiceTranscript = document.querySelector('#practiceTranscript');
-
-let mediaStream = null;
-let activePanel = 'u1';
-let recognitionEnginePromise = null;
-let stopDetectionLoop = null;
-let samplesByGloss = new Map();
-let currentCalibrationGloss = null;
-let quizQuestions = [];
-let quizQuestionIndex = 0;
-let quizCorrectAnswers = 0;
-let currentQuestionHadIncorrectAnswer = false;
-
-const QUIZ_LENGTH = 10;
-const QUIZ_OPTION_COUNT = 4;
-
-function shuffle(items) {
-  const shuffled = [...items];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-  return shuffled;
-}
-
-function getQuizLabel(sign) {
-  const label = getAliasForLanguage(sign.gloss, 'en') || sign.gloss.replaceAll('-', ' ');
-  return label.replace(/\b\w/g, character => character.toLocaleUpperCase());
-}
-
-function renderQuizQuestion() {
-  const sign = quizQuestions[quizQuestionIndex];
-  quizQuestion.textContent = 'What does this sign mean?';
-  quizProgress.textContent = `Question ${quizQuestionIndex + 1} of ${QUIZ_LENGTH}`;
-  quizScore.textContent = `Score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
-  quizFeedback.textContent = '';
-  quizFeedback.className = 'quiz-feedback';
-  quizNextButton.disabled = true;
-  quizNextButton.hidden = false;
-  quizNextButton.textContent = quizQuestionIndex === QUIZ_LENGTH - 1 ? 'See my score' : 'Next question';
-  quizRestartButton.hidden = true;
-  currentQuestionHadIncorrectAnswer = false;
-
-  const videoCard = createSignCard({ ...sign, kind: 'match' }, quizQuestionIndex);
-  videoCard.querySelector('.card-number').remove();
-  videoCard.querySelector('h3').remove();
-  videoCard.querySelectorAll(':scope > p').forEach(paragraph => {
-    if (!paragraph.classList.contains('sign-card-note')) paragraph.remove();
-  });
-  const frame = videoCard.querySelector('iframe');
-  if (frame) frame.title = `ISL sign video for question ${quizQuestionIndex + 1}`;
-  quizVideo.replaceChildren(videoCard);
-
-  const correctOption = getQuizLabel(sign);
-  const optionLabels = new Set([correctOption]);
-  const distractors = [];
-  for (const entry of shuffle(window.SIGN_LIBRARY.filter(item => item.gloss !== sign.gloss))) {
-    const label = getQuizLabel(entry);
-    if (optionLabels.has(label)) continue;
-    optionLabels.add(label);
-    distractors.push(label);
-    if (distractors.length === QUIZ_OPTION_COUNT - 1) break;
-  }
-  const options = shuffle([correctOption, ...distractors]);
-  quizOptions.replaceChildren();
-  options.forEach(option => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'quiz-option';
-    button.textContent = option;
-    button.addEventListener('click', () => answerQuizQuestion(button, option === correctOption, correctOption));
-    quizOptions.append(button);
-  });
-}
-
-function answerQuizQuestion(selectedButton, isCorrect, correctOption) {
-  if (quizNextButton.disabled === false || quizNextButton.hidden) return;
-
-  if (!isCorrect) {
-    currentQuestionHadIncorrectAnswer = true;
-    selectedButton.disabled = true;
-    selectedButton.classList.add('is-incorrect');
-    quizFeedback.textContent = 'Try again.';
-    quizFeedback.classList.add('is-incorrect');
-    return;
-  }
-
-  quizOptions.querySelectorAll('.quiz-option').forEach(button => {
-    button.disabled = true;
-    if (button.textContent === correctOption) button.classList.add('is-correct');
-  });
-  if (!currentQuestionHadIncorrectAnswer) quizCorrectAnswers += 1;
-  quizFeedback.textContent = 'Correct! ðŸŽ‰';
-  quizFeedback.classList.add('is-correct');
-  quizScore.textContent = `Score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
-  quizNextButton.disabled = false;
-}
-
-function finishQuiz() {
-  quizQuestion.textContent = 'Quiz complete!';
-  quizProgress.textContent = 'You answered all 10 questions.';
-  quizVideo.replaceChildren();
-  quizOptions.replaceChildren();
-  quizFeedback.textContent = `Final score: ${quizCorrectAnswers}/${QUIZ_LENGTH}`;
-  quizFeedback.className = 'quiz-feedback quiz-final-score';
-  quizNextButton.hidden = true;
-  quizRestartButton.hidden = false;
-}
-
-function startQuiz() {
-  quizQuestions = shuffle(window.SIGN_LIBRARY).slice(0, QUIZ_LENGTH);
-  quizQuestionIndex = 0;
-  quizCorrectAnswers = 0;
-  renderQuizQuestion();
-}
-
-function activatePracticeTab(tab) {
-  const showQuiz = tab === 'quiz';
-  quizTab.classList.toggle('is-active', showQuiz);
-  quizTab.setAttribute('aria-selected', String(showQuiz));
-  conversationTab.classList.toggle('is-active', !showQuiz);
-  conversationTab.setAttribute('aria-selected', String(!showQuiz));
-  quizPanel.hidden = !showQuiz;
-  practiceConversationPanel.hidden = showQuiz;
-
-  if (showQuiz) {
-    if (mediaStream) {
-      stopCamera();
-      u1Status.textContent = 'Camera off while the quiz is active.';
-    }
-    return;
-  }
-  populateManualSelect();
-  refreshCalibrationStatus();
-}
-
-function glossList() {
-  return window.SIGN_LIBRARY.map(sign => sign.gloss);
-}
-
-function populateManualSelect() {
-  u1ManualWordSelect.innerHTML = '<option value="">Select a wordâ€¦</option>';
-  for (const gloss of glossList()) {
-    const option = document.createElement('option');
-    option.value = gloss;
-    option.textContent = gloss;
-    u1ManualWordSelect.append(option);
-  }
-}
-
-async function refreshCalibrationStatus() {
-  const status = await getCalibrationStatus(glossList());
-  const calibrated = status.filter(entry => entry.count > 0).length;
-  calibrationStatus.textContent = `Calibrated: ${calibrated} / ${status.length} words`;
-  return status;
-}
-
-async function loadSamplesByGloss() {
-  const all = await getAllSamples();
-  const map = new Map();
-  for (const sample of all) {
-    if (!map.has(sample.gloss)) map.set(sample.gloss, []);
-    map.get(sample.gloss).push(sample.landmarks);
-  }
-  samplesByGloss = map;
-  return map;
-}
-
-function ensureRecognitionEngine() {
-  if (!recognitionEnginePromise) recognitionEnginePromise = import('./hand-recognition.js');
-  return recognitionEnginePromise;
-}
-
-async function startCamera() {
-  if (mediaStream) return mediaStream;
-  mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-  sharedCameraVideo.srcObject = mediaStream;
-  videoWrap.hidden = false;
-  return mediaStream;
-}
-
-function stopCamera() {
-  if (stopDetectionLoop) { stopDetectionLoop(); stopDetectionLoop = null; }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
-  }
-  sharedCameraVideo.srcObject = null;
-  videoWrap.hidden = true;
-}
-
-function renderSuggestions(candidates) {
-  u1Suggestions.innerHTML = '';
-  for (const { gloss } of candidates) {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.textContent = `Did you mean ${gloss}?`;
-    chip.addEventListener('click', () => {
-      u1ManualWordSelect.value = gloss;
-      u1Status.textContent = `Selected ${gloss} from suggestions. Press "Use this word" to confirm.`;
-    });
-    u1Suggestions.append(chip);
-  }
-}
-
-async function startLiveRecognition() {
-  await loadSamplesByGloss();
-  if (!samplesByGloss.size) {
-    u1Status.textContent = 'No calibrated words yet â€” record signs first, or use manual selection below.';
-    return;
-  }
-  let engine;
-  try {
-    engine = await ensureRecognitionEngine();
-  } catch (err) {
-    u1Status.textContent = 'Hand recognition unavailable (could not load recognizer) â€” use manual word selection instead.';
-    return;
-  }
-
-  const smoother = engine.createSmoother(gloss => {
-    u1ManualWordSelect.value = gloss;
-    u1Status.textContent = `Recognized: ${gloss}. Press "Use this word" to confirm, or pick a different one.`;
-  });
-
-  await engine.initHandLandmarker();
-  u1Status.textContent = 'Recognizingâ€¦ hold a sign steady.';
-  stopDetectionLoop = engine.startDetectionLoop(sharedCameraVideo, normalized => {
-    if (!normalized) {
-      renderSuggestions([]);
-      smoother(null);
-      return;
-    }
-    const { candidates, best } = engine.matchAgainstSamples(normalized, samplesByGloss);
-    renderSuggestions(candidates);
-    smoother(best);
-  });
-}
-
-async function setActivePanel(panel) {
-  activePanel = panel;
-  toggleU1.classList.toggle('is-active', panel === 'u1');
-  toggleU1.setAttribute('aria-checked', String(panel === 'u1'));
-  toggleU2.classList.toggle('is-active', panel === 'u2');
-  toggleU2.setAttribute('aria-checked', String(panel === 'u2'));
-  panelU1.classList.toggle('is-active', panel === 'u1');
-  panelU2.classList.toggle('is-active', panel === 'u2');
-
-  if (panel === 'u2') {
-    stopCamera();
-    u1Status.textContent = 'Camera off while U2 is active.';
-    u2Status.textContent = 'Type or speak a reply in your language.';
-    return;
-  }
-
-  u2Status.textContent = 'Waiting â€” switch back to U2 to reply.';
-  try {
-    await startCamera();
-    u1Status.textContent = 'Camera on.';
-    startLiveRecognition();
-  } catch (err) {
-    u1Status.textContent = 'Camera permission denied or unavailable â€” use manual word selection instead.';
-  }
-}
-
-function appendPracticeTurn(role, node) {
-  const msg = document.createElement('article');
-  msg.className = role === 'u1' ? 'msg msg-user' : 'msg msg-assistant';
-  msg.append(node);
-  practiceTranscript.append(msg);
-  requestAnimationFrame(() => {
-    practiceTranscript.scrollTo({ top: practiceTranscript.scrollHeight, behavior: 'smooth' });
-  });
-}
-
-function handleU1Word(gloss) {
-  if (!gloss) {
-    u1Status.textContent = 'Pick a recognized or manual word first.';
-    return;
-  }
-  const langCode = u2LanguageSelect.value.split('-')[0];
-  const alias = getAliasForLanguage(gloss, langCode) || gloss;
-
-  const wrap = document.createElement('div');
-  const label = document.createElement('p');
-  label.className = 'msg-text';
-  label.textContent = alias;
-  const sub = document.createElement('p');
-  sub.className = 'msg-note';
-  sub.textContent = `U1 signed: ${gloss}`;
-  wrap.append(label, sub);
-  appendPracticeTurn('u1', wrap);
-
-  u1Status.textContent = `Sent "${gloss}" to U2.`;
-  u1ManualWordSelect.value = '';
-  u1Suggestions.innerHTML = '';
-}
-
-function handleU2Reply() {
-  if (u2MicButton.getAttribute('aria-pressed') === 'true') {
-    u2MicButton.click();
-    u2Status.textContent = 'Stopping the microphone. Press Send again when transcription is finished.';
-    return;
-  }
-
-  const message = u2TextInput.value.trim();
-  if (!message) {
-    u2Status.textContent = 'Type or speak a reply first.';
-    return;
-  }
-  const signLookups = findSignLookups(message);
-  const cards = document.createElement('div');
-  cards.className = 'msg-cards';
-  cards.append(...signLookups.map(createSignCard));
-  appendPracticeTurn('u2', cards);
-
-  u2Status.textContent = `${signLookups.length} ISL ${signLookups.length === 1 ? 'lookup' : 'lookups'} shown to U1.`;
-  u2TextInput.value = '';
-}
-
-// Calibration dialog
-
-async function openCalibrationDialog() {
-  calibrationWordList.innerHTML = '';
-  const status = await refreshCalibrationStatus();
-  for (const { gloss, count } of status) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = count > 0 ? `${gloss} âœ“` : gloss;
-    button.classList.toggle('is-calibrated', count > 0);
-    button.addEventListener('click', () => selectCalibrationWord(gloss));
-    calibrationWordList.append(button);
-  }
-  calibrationCapture.hidden = true;
-  calibrationDialog.showModal();
-}
-
-async function selectCalibrationWord(gloss) {
-  currentCalibrationGloss = gloss;
-  calibrationCapture.hidden = false;
-  const existing = await getAllSamples();
-  const count = existing.filter(sample => sample.gloss === gloss).length;
-  calibrationProgress.textContent = `Samples captured: ${Math.min(count, SAMPLES_PER_WORD)} / ${SAMPLES_PER_WORD}`;
-
-  if (!mediaStream) {
-    try {
-      await startCamera();
-    } catch (err) {
-      calibrationProgress.textContent = 'Camera permission is required to record samples.';
-      return;
-    }
-  }
-  calibrationVideo.srcObject = mediaStream;
-  await ensureRecognitionEngine().then(engine => engine.initHandLandmarker()).catch(() => {
-    calibrationProgress.textContent = 'Hand recognition unavailable â€” cannot capture samples right now.';
-  });
-}
-
-async function captureSample() {
-  if (!currentCalibrationGloss) return;
-  const engine = await ensureRecognitionEngine();
-  const landmarks = engine.detectOnce(calibrationVideo, performance.now());
-  if (!landmarks) {
-    calibrationProgress.textContent = 'No hand detected â€” hold your sign in view and try again.';
-    return;
-  }
-  const normalized = engine.normalizeLandmarks(landmarks);
-  if (!normalized) {
-    calibrationProgress.textContent = 'Could not read hand pose clearly â€” adjust your hand and try again.';
-    return;
-  }
-  await addSample(currentCalibrationGloss, normalized);
-  const existing = await getAllSamples();
-  const count = existing.filter(sample => sample.gloss === currentCalibrationGloss).length;
-  calibrationProgress.textContent = `Samples captured: ${Math.min(count, SAMPLES_PER_WORD)} / ${SAMPLES_PER_WORD}`;
-}
-
-function closeCalibrationDialog() {
-  calibrationDialog.close();
-  calibrationVideo.srcObject = null;
-  currentCalibrationGloss = null;
-  if (activePanel === 'u2') stopCamera();
-  refreshCalibrationStatus();
-}
-
-// Wiring
-
-function openPracticeQuiz() {
-  hero.hidden = true;
-  chat.hidden = true;
-  learningMode.hidden = true;
-  practiceMode.hidden = false;
-  startQuiz();
-  activatePracticeTab('quiz');
-  practiceMode.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-practiceModeButton.addEventListener('click', openPracticeQuiz);
-quizLaunchButton.addEventListener('click', openPracticeQuiz);
-
-practiceExitButton.addEventListener('click', () => {
-  stopCamera();
-  practiceMode.hidden = true;
-  hero.hidden = false;
-  chat.hidden = false;
-});
-
-quizTab.addEventListener('click', () => activatePracticeTab('quiz'));
-conversationTab.addEventListener('click', () => activatePracticeTab('conversation'));
-quizNextButton.addEventListener('click', () => {
-  if (quizQuestionIndex === QUIZ_LENGTH - 1) {
-    finishQuiz();
-    return;
-  }
-  quizQuestionIndex += 1;
-  renderQuizQuestion();
-});
-quizRestartButton.addEventListener('click', startQuiz);
-
-toggleU1.addEventListener('click', () => setActivePanel('u1'));
-toggleU2.addEventListener('click', () => setActivePanel('u2'));
-
-startCameraButton.addEventListener('click', () => setActivePanel('u1'));
-
-u1UseWordButton.addEventListener('click', () => handleU1Word(u1ManualWordSelect.value));
-
-u2SendButton.addEventListener('click', handleU2Reply);
-u2TextInput.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') handleU2Reply();
-});
-u2MicButton.addEventListener('click', () => startListening({
-  input: u2TextInput,
-  micButton: u2MicButton,
-  micLabel: u2MicLabel,
-  replayButton: u2ReplayAudioButton,
-  languageSelect: u2LanguageSelect,
-  statusEl: u2Status,
-}));
-u2ReplayAudioButton.addEventListener('click', () => replaySpeechAudio(u2TextInput, u2Status));
-u2ClearTextButton.addEventListener('click', () => clearSpeechInput({
-  input: u2TextInput,
-  micButton: u2MicButton,
-  micLabel: u2MicLabel,
-  replayButton: u2ReplayAudioButton,
-  statusEl: u2Status,
-}));
-
-calibrateButton.addEventListener('click', openCalibrationDialog);
-calibrationCloseButton.addEventListener('click', closeCalibrationDialog);
-captureSampleButton.addEventListener('click', captureSample);
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíëŽ·N‹Z–‹­¦ëeŠw¬Õ¥µÁ½ÉÐì™¥¹‘M¥¹1½½­ÕÁÌ°•Ñ±¥…Í½É1…¹Õ…”ô™É½´€œ¸½Í¥¸µ±½½­ÕÀ¹©Ìœì4)¥µÁ½ÉÐìÉ•…Ñ•M¥¹…Éô™É½´€œ¸½Í¥¸µÉ•¹‘•È¹©Ìœì4)¥µÁ½ÉÐì±•…ÉMÁ••¡%¹ÁÕÐ°É•Á±…åMÁ••¡Õ‘¥¼°ÍÑ…ÉÑ1¥ÍÑ•¹¥¹œô™É½´€œ¸½…ÁÀ¹©ÌýØôÌäœì4)¥µÁ½ÉÐì…‘‘M…µÁ±”°•Ñ±±M…µÁ±•Ì°•Ñ…±¥‰É…Ñ¥½¹MÑ…ÑÕÌô™É½´€œ¸½…±¥‰É…Ñ¥½¸µÍÑ½É”¹©Ìœì4(4)½¹ÍÐM5A1M}AI}]=I€ô€Ôì4(4)½¹ÍÐÁÉ…Ñ¥•5½‘•	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁÉ…Ñ¥•5½‘•	ÕÑÑ½¸œ¤ì4)½¹ÍÐÅÕ¥é1…Õ¹¡	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥é1…Õ¹¡	ÕÑÑ½¸œ¤ì4)½¹ÍÐÁÉ…Ñ¥•5½‘”€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁÉ…Ñ¥•5½‘”œ¤ì4)½¹ÍÐÁÉ…Ñ¥•á¥Ñ	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁÉ…Ñ¥•á¥Ñ	ÕÑÑ½¸œ¤ì4)½¹ÍÐ¡•É¼€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÑ½Àœ¤ì4)½¹ÍÐ¡…Ð€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ¡…Ðœ¤ì4)½¹ÍÐ±•…É¹¥¹5½‘”€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ±•…É¹¥¹5½‘”œ¤ì4)½¹ÍÐÅÕ¥éQ…ˆ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éQ…ˆœ¤ì4)½¹ÍÐ½¹Ù•ÉÍ…Ñ¥½¹Q…ˆ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ½¹Ù•ÉÍ…Ñ¥½¹Q…ˆœ¤ì4)½¹ÍÐÅÕ¥éA…¹•°€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éA…¹•°œ¤ì4)½¹ÍÐÁÉ…Ñ¥•½¹Ù•ÉÍ…Ñ¥½¹A…¹•°€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁÉ…Ñ¥•½¹Ù•ÉÍ…Ñ¥½¹A…¹•°œ¤ì4)½¹ÍÐÅÕ¥éEÕ•ÍÑ¥½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éEÕ•ÍÑ¥½¸œ¤ì4)½¹ÍÐÅÕ¥éM½É”€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éM½É”œ¤ì4)½¹ÍÐÅÕ¥éAÉ½É•ÍÌ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éAÉ½É•ÍÌœ¤ì4)½¹ÍÐÅÕ¥éY¥‘•¼€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éY¥‘•¼œ¤ì4)½¹ÍÐÅÕ¥é=ÁÑ¥½¹Ì€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥é=ÁÑ¥½¹Ìœ¤ì4)½¹ÍÐÅÕ¥é••‘‰…¬€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥é••‘‰…¬œ¤ì4)½¹ÍÐÅÕ¥é9•áÑ	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥é9•áÑ	ÕÑÑ½¸œ¤ì4)½¹ÍÐÅÕ¥éI•ÍÑ…ÉÑ	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÅÕ¥éI•ÍÑ…ÉÑ	ÕÑÑ½¸œ¤ì4(4)½¹ÍÐÙ¥‘•½]É…À€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÙ¥‘•½]É…Àœ¤ì4)½¹ÍÐÍ¡…É•‘…µ•É…Y¥‘•¼€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÍ¡…É•‘…µ•É…Y¥‘•¼œ¤ì4(4)½¹ÍÐÑ½±•TÄ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÑ½±•TÄœ¤ì4)½¹ÍÐÑ½±•TÈ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÑ½±•TÈœ¤ì4)½¹ÍÐÁ…¹•±TÄ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁ…¹•±TÄœ¤ì4)½¹ÍÐÁ…¹•±TÈ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁ…¹•±TÈœ¤ì4)½¹ÍÐÔÅMÑ…ÑÕÌ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÅMÑ…ÑÕÌœ¤ì4)½¹ÍÐÔÉMÑ…ÑÕÌ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉMÑ…ÑÕÌœ¤ì4)½¹ÍÐÍÑ…ÉÑ…µ•É…	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÍÑ…ÉÑ…µ•É…	ÕÑÑ½¸œ¤ì4)½¹ÍÐÔÅMÕ•ÍÑ¥½¹Ì€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÅMÕ•ÍÑ¥½¹Ìœ¤ì4)½¹ÍÐÔÅ5…¹Õ…±]½É‘M•±•Ð€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÅ5…¹Õ…±]½É‘M•±•Ðœ¤ì4)½¹ÍÐÔÅUÍ•]½É‘	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÅUÍ•]½É‘	ÕÑÑ½¸œ¤ì4(4)½¹ÍÐÔÉQ•áÑ%¹ÁÕÐ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉQ•áÑ%¹ÁÕÐœ¤ì4)½¹ÍÐÔÉ1…¹Õ…•M•±•Ð€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉ1…¹Õ…•M•±•Ðœ¤ì4)½¹ÍÐÔÉ5¥	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉ5¥	ÕÑÑ½¸œ¤ì4)½¹ÍÐÔÉ5¥1…‰•°€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉ5¥1…‰•°œ¤ì4)½¹ÍÐÔÉI•Á±…åÕ‘¥½	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉI•Á±…åÕ‘¥½	ÕÑÑ½¸œ¤ì4)½¹ÍÐÔÉ±•…ÉQ•áÑ	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉ±•…ÉQ•áÑ	ÕÑÑ½¸œ¤ì4)½¹ÍÐÔÉM•¹‘	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÔÉM•¹‘	ÕÑÑ½¸œ¤ì4(4)½¹ÍÐ…±¥‰É…Ñ•	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ•	ÕÑÑ½¸œ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹MÑ…ÑÕÌ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹MÑ…ÑÕÌœ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹¥…±½œ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹¥…±½œœ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹±½Í•	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹±½Í•	ÕÑÑ½¸œ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹]½É‘1¥ÍÐ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹]½É‘1¥ÍÐœ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹…ÁÑÕÉ”€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹…ÁÑÕÉ”œ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹Y¥‘•¼€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹Y¥‘•¼œ¤ì4)½¹ÍÐ…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…±¥‰É…Ñ¥½¹AÉ½É•ÍÌœ¤ì4)½¹ÍÐ…ÁÑÕÉ•M…µÁ±•	ÕÑÑ½¸€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œ…ÁÑÕÉ•M…µÁ±•	ÕÑÑ½¸œ¤ì4(4)½¹ÍÐÁÉ…Ñ¥•QÉ…¹ÍÉ¥ÁÐ€ô‘½Õµ•¹Ð¹ÅÕ•ÉåM•±•Ñ½È œÁÉ…Ñ¥•QÉ…¹ÍÉ¥ÁÐœ¤ì4(4)±•Ðµ•‘¥…MÑÉ•…´€ô¹Õ±°ì4)±•Ð…Ñ¥Ù•A…¹•°€ô€ÔÄœì4)±•ÐÉ•½¹¥Ñ¥½¹¹¥¹•AÉ½µ¥Í”€ô¹Õ±°ì4)±•ÐÍÑ½Á•Ñ•Ñ¥½¹1½½À€ô¹Õ±°ì4)±•ÐÍ…µÁ±•Í	å±½ÍÌ€ô¹•Ü5…À ¤ì4)±•ÐÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ€ô¹Õ±°ì4)±•ÐÅÕ¥éEÕ•ÍÑ¥½¹Ì€ômtì4)±•ÐÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€ô€Àì4)±•ÐÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÌ€ô€Àì4)±•ÐÕÉÉ•¹ÑEÕ•ÍÑ¥½¹!…‘%¹½ÉÉ•Ñ¹ÍÝ•È€ô™…±Í”ì4(4)½¹ÍÐEU%i}19Q €ô€ÄÀì4)½¹ÍÐEU%i}=AQ%=9}=U9P€ô€Ðì4(4)™Õ¹Ñ¥½¸Í¡Õ™™±”¡¥Ñ•µÌ¤ì4(€½¹ÍÐÍ¡Õ™™±•€ôl¸¸¹¥Ñ•µÍtì4(€™½È€¡±•Ð¥¹‘•à€ôÍ¡Õ™™±•¹±•¹Ñ €´€Äì¥¹‘•à€ø€Àì¥¹‘•à€´ô€Ä¤ì4(€€€½¹ÍÐÍÝ…Á%¹‘•à€ô5…Ñ ¹™±½½È¡5…Ñ ¹É…¹‘½´ ¤€¨€¡¥¹‘•à€¬€Ä¤¤ì4(€€€mÍ¡Õ™™±•‘m¥¹‘•át°Í¡Õ™™±•‘mÍÝ…Á%¹‘•áut€ômÍ¡Õ™™±•‘mÍÝ…Á%¹‘•át°Í¡Õ™™±•‘m¥¹‘•áutì4(€ô4(€É•ÑÕÉ¸Í¡Õ™™±•ì4)ô4(4)™Õ¹Ñ¥½¸•ÑEÕ¥é1…‰•°¡Í¥¸¤ì4(€½¹ÍÐ±…‰•°€ô•Ñ±¥…Í½É1…¹Õ…”¡Í¥¸¹±½ÍÌ°€•¸œ¤ñðÍ¥¸¹±½ÍÌ¹É•Á±…•±° œ´œ°€œ€œ¤ì4(€É•ÑÕÉ¸±…‰•°¹É•Á±…” ½q‰qÜ½œ°¡…É…Ñ•È€ôø¡…É…Ñ•È¹Ñ½1½…±•UÁÁ•É…Í” ¤¤ì4)ô4(4)™Õ¹Ñ¥½¸É•¹‘•ÉEÕ¥éEÕ•ÍÑ¥½¸ ¤ì4(€½¹ÍÐÍ¥¸€ôÅÕ¥éEÕ•ÍÑ¥½¹ÍmÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•átì4(€ÅÕ¥éEÕ•ÍÑ¥½¸¹Ñ•áÑ½¹Ñ•¹Ð€ô€]¡…Ð‘½•ÌÑ¡¥ÌÍ¥¸µ•…¸üœì4(€ÅÕ¥éAÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôEÕ•ÍÑ¥½¸€‘íÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€¬€Åô½˜€‘íEU%i}19Q!õ€ì4(€ÅÕ¥éM½É”¹Ñ•áÑ½¹Ñ•¹Ð€ôM½É”è€‘íÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÍô¼‘íEU%i}19Q!õ€ì4(€ÅÕ¥é••‘‰…¬¹Ñ•áÑ½¹Ñ•¹Ð€ô€œœì4(€ÅÕ¥é••‘‰…¬¹±…ÍÍ9…µ”€ô€ÅÕ¥èµ™••‘‰…¬œì4(€ÅÕ¥é9•áÑ	ÕÑÑ½¸¹‘¥Í…‰±•€ôÑÉÕ”ì4(€ÅÕ¥é9•áÑ	ÕÑÑ½¸¹¡¥‘‘•¸€ô™…±Í”ì4(€ÅÕ¥é9•áÑ	ÕÑÑ½¸¹Ñ•áÑ½¹Ñ•¹Ð€ôÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€ôôôEU%i}19Q €´€Ä€ü€M•”µäÍ½É”œ€è€9•áÐÅÕ•ÍÑ¥½¸œì4(€ÅÕ¥éI•ÍÑ…ÉÑ	ÕÑÑ½¸¹¡¥‘‘•¸€ôÑÉÕ”ì4(€ÕÉÉ•¹ÑEÕ•ÍÑ¥½¹!…‘%¹½ÉÉ•Ñ¹ÍÝ•È€ô™…±Í”ì4(4(€½¹ÍÐÙ¥‘•½…É€ôÉ•…Ñ•M¥¹…É¡ì€¸¸¹Í¥¸°­¥¹è€µ…Ñ œô°ÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à¤ì4(€Ù¥‘•½…É¹ÅÕ•ÉåM•±•Ñ½È œ¹…Éµ¹Õµ‰•Èœ¤¹É•µ½Ù” ¤ì4(€Ù¥‘•½…É¹ÅÕ•ÉåM•±•Ñ½È  Ìœ¤¹É•µ½Ù” ¤ì4(€Ù¥‘•½…É¹ÅÕ•ÉåM•±•Ñ½É±° œéÍ½Á”€øÀœ¤¹™½É… ¡Á…É…É…Á €ôøì4(€€€¥˜€ …Á…É…É…Á ¹±…ÍÍ1¥ÍÐ¹½¹Ñ…¥¹Ì Í¥¸µ…Éµ¹½Ñ”œ¤¤Á…É…É…Á ¹É•µ½Ù” ¤ì4(€ô¤ì4(€½¹ÍÐ™É…µ”€ôÙ¥‘•½…É¹ÅÕ•ÉåM•±•Ñ½È ¥™É…µ”œ¤ì4(€¥˜€¡™É…µ”¤™É…µ”¹Ñ¥Ñ±”€ô%M0Í¥¸Ù¥‘•¼™½ÈÅÕ•ÍÑ¥½¸€‘íÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€¬€Åõ€ì4(€ÅÕ¥éY¥‘•¼¹É•Á±…•¡¥±‘É•¸¡Ù¥‘•½…É¤ì4(4(€½¹ÍÐ½ÉÉ•Ñ=ÁÑ¥½¸€ô•ÑEÕ¥é1…‰•°¡Í¥¸¤ì4(€½¹ÍÐ½ÁÑ¥½¹1…‰•±Ì€ô¹•ÜM•Ð¡m½ÉÉ•Ñ=ÁÑ¥½¹t¤ì4(€½¹ÍÐ‘¥ÍÑÉ…Ñ½ÉÌ€ômtì4(€™½È€¡½¹ÍÐ•¹ÑÉä½˜Í¡Õ™™±”¡Ý¥¹‘½Ü¹M%9}1%	IId¹™¥±Ñ•È¡¥Ñ•´€ôø¥Ñ•´¹±½ÍÌ€„ôôÍ¥¸¹±½ÍÌ¤¤¤ì4(€€€½¹ÍÐ±…‰•°€ô•ÑEÕ¥é1…‰•°¡•¹ÑÉä¤ì4(€€€¥˜€¡½ÁÑ¥½¹1…‰•±Ì¹¡…Ì¡±…‰•°¤¤½¹Ñ¥¹Õ”ì4(€€€½ÁÑ¥½¹1…‰•±Ì¹…‘¡±…‰•°¤ì4(€€€‘¥ÍÑÉ…Ñ½ÉÌ¹ÁÕÍ ¡±…‰•°¤ì4(€€€¥˜€¡‘¥ÍÑÉ…Ñ½ÉÌ¹±•¹Ñ €ôôôEU%i}=AQ%=9}=U9P€´€Ä¤‰É•…¬ì4(€ô4(€½¹ÍÐ½ÁÑ¥½¹Ì€ôÍ¡Õ™™±”¡m½ÉÉ•Ñ=ÁÑ¥½¸°€¸¸¹‘¥ÍÑÉ…Ñ½ÉÍt¤ì4(€ÅÕ¥é=ÁÑ¥½¹Ì¹É•Á±…•¡¥±‘É•¸ ¤ì4(€½ÁÑ¥½¹Ì¹™½É… ¡½ÁÑ¥½¸€ôøì4(€€€½¹ÍÐ‰ÕÑÑ½¸€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð ‰ÕÑÑ½¸œ¤ì4(€€€‰ÕÑÑ½¸¹ÑåÁ”€ô€‰ÕÑÑ½¸œì4(€€€‰ÕÑÑ½¸¹±…ÍÍ9…µ”€ô€ÅÕ¥èµ½ÁÑ¥½¸œì4(€€€‰ÕÑÑ½¸¹Ñ•áÑ½¹Ñ•¹Ð€ô½ÁÑ¥½¸ì4(€€€‰ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôø…¹ÍÝ•ÉEÕ¥éEÕ•ÍÑ¥½¸¡‰ÕÑÑ½¸°½ÁÑ¥½¸€ôôô½ÉÉ•Ñ=ÁÑ¥½¸°½ÉÉ•Ñ=ÁÑ¥½¸¤¤ì4(€€€ÅÕ¥é=ÁÑ¥½¹Ì¹…ÁÁ•¹¡‰ÕÑÑ½¸¤ì4(€ô¤ì4)ô4(4)™Õ¹Ñ¥½¸…¹ÍÝ•ÉEÕ¥éEÕ•ÍÑ¥½¸¡Í•±•Ñ•‘	ÕÑÑ½¸°¥Í½ÉÉ•Ð°½ÉÉ•Ñ=ÁÑ¥½¸¤ì4(€¥˜€¡ÅÕ¥é9•áÑ	ÕÑÑ½¸¹‘¥Í…‰±•€ôôô™…±Í”ñðÅÕ¥é9•áÑ	ÕÑÑ½¸¹¡¥‘‘•¸¤É•ÑÕÉ¸ì4(4(€¥˜€ …¥Í½ÉÉ•Ð¤ì4(€€€ÕÉÉ•¹ÑEÕ•ÍÑ¥½¹!…‘%¹½ÉÉ•Ñ¹ÍÝ•È€ôÑÉÕ”ì4(€€€Í•±•Ñ•‘	ÕÑÑ½¸¹‘¥Í…‰±•€ôÑÉÕ”ì4(€€€Í•±•Ñ•‘	ÕÑÑ½¸¹±…ÍÍ1¥ÍÐ¹…‘ ¥Ìµ¥¹½ÉÉ•Ðœ¤ì4(€€€ÅÕ¥é••‘‰…¬¹Ñ•áÑ½¹Ñ•¹Ð€ô€QÉä……¥¸¸œì4(€€€ÅÕ¥é••‘‰…¬¹±…ÍÍ1¥ÍÐ¹…‘ ¥Ìµ¥¹½ÉÉ•Ðœ¤ì4(€€€É•ÑÕÉ¸ì4(€ô4(4(€ÅÕ¥é=ÁÑ¥½¹Ì¹ÅÕ•ÉåM•±•Ñ½É±° œ¹ÅÕ¥èµ½ÁÑ¥½¸œ¤¹™½É… ¡‰ÕÑÑ½¸€ôøì4(€€€‰ÕÑÑ½¸¹‘¥Í…‰±•€ôÑÉÕ”ì4(€€€¥˜€¡‰ÕÑÑ½¸¹Ñ•áÑ½¹Ñ•¹Ð€ôôô½ÉÉ•Ñ=ÁÑ¥½¸¤‰ÕÑÑ½¸¹±…ÍÍ1¥ÍÐ¹…‘ ¥Ìµ½ÉÉ•Ðœ¤ì4(€ô¤ì4(€¥˜€ …ÕÉÉ•¹ÑEÕ•ÍÑ¥½¹!…‘%¹½ÉÉ•Ñ¹ÍÝ•È¤ÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÌ€¬ô€Äì4(€ÅÕ¥é••‘‰…¬¹Ñ•áÑ½¹Ñ•¹Ð€ô€½ÉÉ•Ð„ƒÂ~:$œì4(€ÅÕ¥é••‘‰…¬¹±…ÍÍ1¥ÍÐ¹…‘ ¥Ìµ½ÉÉ•Ðœ¤ì4(€ÅÕ¥éM½É”¹Ñ•áÑ½¹Ñ•¹Ð€ôM½É”è€‘íÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÍô¼‘íEU%i}19Q!õ€ì4(€ÅÕ¥é9•áÑ	ÕÑÑ½¸¹‘¥Í…‰±•€ô™…±Í”ì4)ô4(4)™Õ¹Ñ¥½¸™¥¹¥Í¡EÕ¥è ¤ì4(€ÅÕ¥éEÕ•ÍÑ¥½¸¹Ñ•áÑ½¹Ñ•¹Ð€ô€EÕ¥è½µÁ±•Ñ”„œì4(€ÅÕ¥éAÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€e½Ô…¹ÍÝ•É•…±°€ÄÀÅÕ•ÍÑ¥½¹Ì¸œì4(€ÅÕ¥éY¥‘•¼¹É•Á±…•¡¥±‘É•¸ ¤ì4(€ÅÕ¥é=ÁÑ¥½¹Ì¹É•Á±…•¡¥±‘É•¸ ¤ì4(€ÅÕ¥é••‘‰…¬¹Ñ•áÑ½¹Ñ•¹Ð€ô¥¹…°Í½É”è€‘íÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÍô¼‘íEU%i}19Q!õ€ì4(€ÅÕ¥é••‘‰…¬¹±…ÍÍ9…µ”€ô€ÅÕ¥èµ™••‘‰…¬ÅÕ¥èµ™¥¹…°µÍ½É”œì4(€ÅÕ¥é9•áÑ	ÕÑÑ½¸¹¡¥‘‘•¸€ôÑÉÕ”ì4(€ÅÕ¥éI•ÍÑ…ÉÑ	ÕÑÑ½¸¹¡¥‘‘•¸€ô™…±Í”ì4)ô4(4)™Õ¹Ñ¥½¸ÍÑ…ÉÑEÕ¥è ¤ì4(€ÅÕ¥éEÕ•ÍÑ¥½¹Ì€ôÍ¡Õ™™±”¡Ý¥¹‘½Ü¹M%9}1%	IId¤¹Í±¥” À°EU%i}19Q ¤ì4(€ÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€ô€Àì4(€ÅÕ¥é½ÉÉ•Ñ¹ÍÝ•ÉÌ€ô€Àì4(€É•¹‘•ÉEÕ¥éEÕ•ÍÑ¥½¸ ¤ì4)ô4(4)™Õ¹Ñ¥½¸…Ñ¥Ù…Ñ•AÉ…Ñ¥•Q…ˆ¡Ñ…ˆ¤ì4(€½¹ÍÐÍ¡½ÝEÕ¥è€ôÑ…ˆ€ôôô€ÅÕ¥èœì4(€ÅÕ¥éQ…ˆ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°Í¡½ÝEÕ¥è¤ì4(€ÅÕ¥éQ…ˆ¹Í•ÑÑÑÉ¥‰ÕÑ” …É¥„µÍ•±•Ñ•œ°MÑÉ¥¹œ¡Í¡½ÝEÕ¥è¤¤ì4(€½¹Ù•ÉÍ…Ñ¥½¹Q…ˆ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°€…Í¡½ÝEÕ¥è¤ì4(€½¹Ù•ÉÍ…Ñ¥½¹Q…ˆ¹Í•ÑÑÑÉ¥‰ÕÑ” …É¥„µÍ•±•Ñ•œ°MÑÉ¥¹œ …Í¡½ÝEÕ¥è¤¤ì4(€ÅÕ¥éA…¹•°¹¡¥‘‘•¸€ô€…Í¡½ÝEÕ¥èì4(€ÁÉ…Ñ¥•½¹Ù•ÉÍ…Ñ¥½¹A…¹•°¹¡¥‘‘•¸€ôÍ¡½ÝEÕ¥èì4(4(€¥˜€¡Í¡½ÝEÕ¥è¤ì4(€€€¥˜€¡µ•‘¥…MÑÉ•…´¤ì4(€€€€€ÍÑ½Á…µ•É„ ¤ì4(€€€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€…µ•É„½™˜Ý¡¥±”Ñ¡”ÅÕ¥è¥Ì…Ñ¥Ù”¸œì4(€€€ô4(€€€É•ÑÕÉ¸ì4(€ô4(€Á½ÁÕ±…Ñ•5…¹Õ…±M•±•Ð ¤ì4(€É•™É•Í¡…±¥‰É…Ñ¥½¹MÑ…ÑÕÌ ¤ì4)ô4(4)™Õ¹Ñ¥½¸±½ÍÍ1¥ÍÐ ¤ì4(€É•ÑÕÉ¸Ý¥¹‘½Ü¹M%9}1%	IId¹µ…À¡Í¥¸€ôøÍ¥¸¹±½ÍÌ¤ì4)ô4(4)™Õ¹Ñ¥½¸Á½ÁÕ±…Ñ•5…¹Õ…±M•±•Ð ¤ì4(€ÔÅ5…¹Õ…±]½É‘M•±•Ð¹¥¹¹•É!Q50€ô€œñ½ÁÑ¥½¸Ù…±Õ”ôˆˆùM•±•Ð„Ý½É“Š˜ð½½ÁÑ¥½¸øœì4(€™½È€¡½¹ÍÐ±½ÍÌ½˜±½ÍÍ1¥ÍÐ ¤¤ì4(€€€½¹ÍÐ½ÁÑ¥½¸€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð ½ÁÑ¥½¸œ¤ì4(€€€½ÁÑ¥½¸¹Ù…±Õ”€ô±½ÍÌì4(€€€½ÁÑ¥½¸¹Ñ•áÑ½¹Ñ•¹Ð€ô±½ÍÌì4(€€€ÔÅ5…¹Õ…±]½É‘M•±•Ð¹…ÁÁ•¹¡½ÁÑ¥½¸¤ì4(€ô4)ô4(4)…Íå¹Œ™Õ¹Ñ¥½¸É•™É•Í¡…±¥‰É…Ñ¥½¹MÑ…ÑÕÌ ¤ì4(€½¹ÍÐÍÑ…ÑÕÌ€ô…Ý…¥Ð•Ñ…³Ž·¶‰žËkºwµçUµ•¹Ð¹É•…Ñ•±•µ•¹Ð ‰ÕÑÑ½¸œ¤ì4(€€€¡¥À¹ÑåÁ”€ô€‰ÕÑÑ½¸œì4(€€€¡¥À¹Ñ•áÑ½¹Ñ•¹Ð€ô¥å½Ôµ•…¸€‘í±½ÍÍôý€ì4(€€€¡¥À¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøì4(€€€€€ÔÅ5…¹Õ…±]½É‘M•±•Ð¹Ù…±Õ”€ô±½ÍÌì4(€€€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôM•±•Ñ•€‘í±½ÍÍô™É½´ÍÕ•ÍÑ¥½¹Ì¸AÉ•ÍÌ€‰UÍ”Ñ¡¥ÌÝ½ÉˆÑ¼½¹™¥É´¹€ì4(€€€ô¤ì4(€€€ÔÅMÕ•ÍÑ¥½¹Ì¹…ÁÁ•¹¡¡¥À¤ì4(€ô4)ô4(4)…Íå¹Œ™Õ¹Ñ¥½¸ÍÑ…ÉÑ1¥Ù•I•½¹¥Ñ¥½¸ ¤ì4(€…Ý…¥Ð±½…‘M…µÁ±•Í	å±½ÍÌ ¤ì4(€¥˜€ …Í…µÁ±•Í	å±½ÍÌ¹Í¥é”¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€9¼…±¥‰É…Ñ•Ý½É‘Ìå•ÐƒŠPÉ•½ÉÍ¥¹Ì™¥ÉÍÐ°½ÈÕÍ”µ…¹Õ…°Í•±•Ñ¥½¸‰•±½Ü¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(€±•Ð•¹¥¹”ì4(€ÑÉäì4(€€€•¹¥¹”€ô…Ý…¥Ð•¹ÍÕÉ•I•½¹¥Ñ¥½¹¹¥¹” ¤ì4(€ô…Ñ €¡•ÉÈ¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€!…¹É•½¹¥Ñ¥½¸Õ¹…Ù…¥±…‰±”€¡½Õ±¹½Ð±½…É•½¹¥é•È¤ƒŠPÕÍ”µ…¹Õ…°Ý½ÉÍ•±•Ñ¥½¸¥¹ÍÑ•…¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(4(€½¹ÍÐÍµ½½Ñ¡•È€ô•¹¥¹”¹É•…Ñ•Mµ½½Ñ¡•È¡±½ÍÌ€ôøì4(€€€ÔÅ5…¹Õ…±]½É‘M•±•Ð¹Ù…±Õ”€ô±½ÍÌì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôI•½¹¥é•è€‘í±½ÍÍô¸AÉ•ÍÌ€‰UÍ”Ñ¡¥ÌÝ½ÉˆÑ¼½¹™¥É´°½ÈÁ¥¬„‘¥™™•É•¹Ð½¹”¹€ì4(€ô¤ì4(4(€…Ý…¥Ð•¹¥¹”¹¥¹¥Ñ!…¹‘1…¹‘µ…É­•È ¤ì4(€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€I•½¹¥é¥¹ŸŠ˜¡½±„Í¥¸ÍÑ•…‘ä¸œì4(€ÍÑ½Á•Ñ•Ñ¥½¹1½½À€ô•¹¥¹”¹ÍÑ…ÉÑ•Ñ•Ñ¥½¹1½½À¡Í¡…É•‘…µ•É…Y¥‘•¼°¹½Éµ…±¥é•€ôøì4(€€€¥˜€ …¹½Éµ…±¥é•¤ì4(€€€€€É•¹‘•ÉMÕ•ÍÑ¥½¹Ì¡mt¤ì4(€€€€€Íµ½½Ñ¡•È¡¹Õ±°¤ì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€€€½¹ÍÐì…¹‘¥‘…Ñ•Ì°‰•ÍÐô€ô•¹¥¹”¹µ…Ñ¡…¥¹ÍÑM…µÁ±•Ì¡¹½Éµ…±¥é•°Í…µÁ±•Í	å±½ÍÌ¤ì4(€€€É•¹‘•ÉMÕ•ÍÑ¥½¹Ì¡…¹‘¥‘…Ñ•Ì¤ì4(€€€Íµ½½Ñ¡•È¡‰•ÍÐ¤ì4(€ô¤ì4)ô4(4)…Íå¹Œ™Õ¹Ñ¥½¸Í•ÑÑ¥Ù•A…¹•°¡Á…¹•°¤ì4(€…Ñ¥Ù•A…¹•°€ôÁ…¹•°ì4(€Ñ½±•TÄ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°Á…¹•°€ôôô€ÔÄœ¤ì4(€Ñ½±•TÄ¹Í•ÑÑÑÉ¥‰ÕÑ” …É¥„µ¡•­•œ°MÑÉ¥¹œ¡Á…¹•°€ôôô€ÔÄœ¤¤ì4(€Ñ½±•TÈ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°Á…¹•°€ôôô€ÔÈœ¤ì4(€Ñ½±•TÈ¹Í•ÑÑÑÉ¥‰ÕÑ” …É¥„µ¡•­•œ°MÑÉ¥¹œ¡Á…¹•°€ôôô€ÔÈœ¤¤ì4(€Á…¹•±TÄ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°Á…¹•°€ôôô€ÔÄœ¤ì4(€Á…¹•±TÈ¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…Ñ¥Ù”œ°Á…¹•°€ôôô€ÔÈœ¤ì4(4(€¥˜€¡Á…¹•°€ôôô€ÔÈœ¤ì4(€€€ÍÑ½Á…µ•É„ ¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€…µ•É„½™˜Ý¡¥±”TÈ¥Ì…Ñ¥Ù”¸œì4(€€€ÔÉMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€QåÁ”½ÈÍÁ•…¬„É•Á±ä¥¸å½ÕÈ±…¹Õ…”¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(4(€ÔÉMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€]…¥Ñ¥¹œƒŠPÍÝ¥Ñ ‰…¬Ñ¼TÈÑ¼É•Á±ä¸œì4(€ÑÉäì4(€€€…Ý…¥ÐÍÑ…ÉÑ…µ•É„ ¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€…µ•É„½¸¸œì4(€€€ÍÑ…ÉÑ1¥Ù•I•½¹¥Ñ¥½¸ ¤ì4(€ô…Ñ €¡•ÉÈ¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€…µ•É„Á•Éµ¥ÍÍ¥½¸‘•¹¥•½ÈÕ¹…Ù…¥±…‰±”ƒŠPÕÍ”µ…¹Õ…°Ý½ÉÍ•±•Ñ¥½¸¥¹ÍÑ•…¸œì4(€ô4)ô4(4)™Õ¹Ñ¥½¸…ÁÁ•¹‘AÉ…Ñ¥•QÕÉ¸¡É½±”°¹½‘”¤ì4(€½¹ÍÐµÍœ€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð …ÉÑ¥±”œ¤ì4(€µÍœ¹±…ÍÍ9…µ”€ôÉ½±”€ôôô€ÔÄœ€ü€µÍœµÍœµÕÍ•Èœ€è€µÍœµÍœµ…ÍÍ¥ÍÑ…¹Ðœì4(€µÍœ¹…ÁÁ•¹¡¹½‘”¤ì4(€ÁÉ…Ñ¥•QÉ…¹ÍÉ¥ÁÐ¹…ÁÁ•¹¡µÍœ¤ì4(€É•ÅÕ•ÍÑ¹¥µ…Ñ¥½¹É…µ”  ¤€ôøì4(€€€ÁÉ…Ñ¥•QÉ…¹ÍÉ¥ÁÐ¹ÍÉ½±±Q¼¡ìÑ½ÀèÁÉ…Ñ¥•QÉ…¹ÍÉ¥ÁÐ¹ÍÉ½±±!•¥¡Ð°‰•¡…Ù¥½Èè€Íµ½½Ñ œô¤ì4(€ô¤ì4)ô4(4)™Õ¹Ñ¥½¸¡…¹‘±•TÅ]½É¡±½ÍÌ¤ì4(€¥˜€ …±½ÍÌ¤ì4(€€€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€A¥¬„É•½¹¥é•½Èµ…¹Õ…°Ý½É™¥ÉÍÐ¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(€½¹ÍÐ±…¹½‘”€ôÔÉ1…¹Õ…•M•±•Ð¹Ù…±Õ”¹ÍÁ±¥Ð œ´œ¥lÁtì4(€½¹ÍÐ…±¥…Ì€ô•Ñ±¥…Í½É1…¹Õ…”¡±½ÍÌ°±…¹½‘”¤ñð±½ÍÌì4(4(€½¹ÍÐÝÉ…À€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð ‘¥Øœ¤ì4(€½¹ÍÐ±…‰•°€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð Àœ¤ì4(€±…‰•°¹±…ÍÍ9…µ”€ô€µÍœµÑ•áÐœì4(€±…‰•°¹Ñ•áÑ½¹Ñ•¹Ð€ô…±¥…Ìì4(€½¹ÍÐÍÕˆ€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð Àœ¤ì4(€ÍÕˆ¹±…ÍÍ9…µ”€ô€µÍœµ¹½Ñ”œì4(€ÍÕˆ¹Ñ•áÑ½¹Ñ•¹Ð€ôTÄÍ¥¹•è€‘í±½ÍÍõ€ì4(€ÝÉ…À¹…ÁÁ•¹¡±…‰•°°ÍÕˆ¤ì4(€…ÁÁ•¹‘AÉ…Ñ¥•QÕÉ¸ ÔÄœ°ÝÉ…À¤ì4(4(€ÔÅMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôM•¹Ð€ˆ‘í±½ÍÍôˆÑ¼TÈ¹€ì4(€ÔÅ5…¹Õ…±]½É‘M•±•Ð¹Ù…±Õ”€ô€œœì4(€ÔÅMÕ•ÍÑ¥½¹Ì¹¥¹¹•É!Q50€ô€œœì4)ô4(4)™Õ¹Ñ¥½¸¡…¹‘±•TÉI•Á±ä ¤ì4(€¥˜€¡ÔÉ5¥	ÕÑÑ½¸¹•ÑÑÑÉ¥‰ÕÑ” …É¥„µÁÉ•ÍÍ•œ¤€ôôô€ÑÉÕ”œ¤ì4(€€€ÔÉ5¥	ÕÑÑ½¸¹±¥¬ ¤ì4(€€€ÔÉMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€MÑ½ÁÁ¥¹œÑ¡”µ¥É½Á¡½¹”¸AÉ•ÍÌM•¹……¥¸Ý¡•¸ÑÉ…¹ÍÉ¥ÁÑ¥½¸¥Ì™¥¹¥Í¡•¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(4(€½¹ÍÐµ•ÍÍ…”€ôÔÉQ•áÑ%¹ÁÕÐ¹Ù…±Õ”¹ÑÉ¥´ ¤ì4(€¥˜€ …µ•ÍÍ…”¤ì4(€€€ÔÉMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€QåÁ”½ÈÍÁ•…¬„É•Á±ä™¥ÉÍÐ¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(€½¹ÍÐÍ¥¹1½½­ÕÁÌ€ô™¥¹‘M¥¹1½½­ÕÁÌ¡µ•ÍÍ…”¤ì4(€½¹ÍÐ…É‘Ì€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð ‘¥Øœ¤ì4(€…É‘Ì¹±…ÍÍ9…µ”€ô€µÍœµ…É‘Ìœì4(€…É‘Ì¹…ÁÁ•¹ ¸¸¹Í¥¹1½½­ÕÁÌ¹µ…À¡É•…Ñ•M¥¹…É¤¤ì4(€…ÁÁ•¹‘AÉ…Ñ¥•QÕÉ¸ ÔÈœ°…É‘Ì¤ì4(4(€ÔÉMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€‘íÍ¥¹1½½­ÕÁÌ¹±•¹Ñ¡ô%M0€‘íÍ¥¹1½½­ÕÁÌ¹±•¹Ñ €ôôô€Ä€ü€±½½­ÕÀœ€è€±½½­ÕÁÌôÍ¡½Ý¸Ñ¼TÄ¹€ì4(€ÔÉQ•áÑ%¹ÁÕÐ¹Ù…±Õ”€ô€œœì4)ô4(4(¼¼…±¥‰É…Ñ¥½¸‘¥…±½œ4(4)…Íå¹Œ™Õ¹Ñ¥½¸½Á•¹…±¥‰É…Ñ¥½¹¥…±½œ ¤ì4(€…±¥‰É…Ñ¥½¹]½É‘1¥ÍÐ¹¥¹¹•É!Q50€ô€œœì4(€½¹ÍÐÍÑ…ÑÕÌ€ô…Ý…¥ÐÉ•™É•Í¡…±¥‰É…Ñ¥½¹MÑ…ÑÕÌ ¤ì4(€™½È€¡½¹ÍÐì±½ÍÌ°½Õ¹Ðô½˜ÍÑ…ÑÕÌ¤ì4(€€€½¹ÍÐ‰ÕÑÑ½¸€ô‘½Õµ•¹Ð¹É•…Ñ•±•µ•¹Ð ‰ÕÑÑ½¸œ¤ì4(€€€‰ÕÑÑ½¸¹ÑåÁ”€ô€‰ÕÑÑ½¸œì4(€€€‰ÕÑÑ½¸¹Ñ•áÑ½¹Ñ•¹Ð€ô½Õ¹Ð€ø€À€ü€‘í±½ÍÍôƒŠrM€€è±½ÍÌì4(€€€‰ÕÑÑ½¸¹±…ÍÍ1¥ÍÐ¹Ñ½±” ¥Ìµ…±¥‰É…Ñ•œ°½Õ¹Ð€ø€À¤ì4(€€€‰ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÍ•±•Ñ…±¥‰É…Ñ¥½¹]½É¡±½ÍÌ¤¤ì4(€€€…±¥‰É…Ñ¥½¹]½É‘1¥ÍÐ¹…ÁÁ•¹¡‰ÕÑÑ½¸¤ì4(€ô4(€…±¥‰É…Ñ¥½¹…ÁÑÕÉ”¹¡¥‘‘•¸€ôÑÉÕ”ì4(€…±¥‰É…Ñ¥½¹¥…±½œ¹Í¡½Ý5½‘…° ¤ì4)ô4(4)…Íå¹Œ™Õ¹Ñ¥½¸Í•±•Ñ…±¥‰É…Ñ¥½¹]½É¡±½ÍÌ¤ì4(€ÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ€ô±½ÍÌì4(€…±¥‰É…Ñ¥½¹…ÁÑÕÉ”¹¡¥‘‘•¸€ô™…±Í”ì4(€½¹ÍÐ•á¥ÍÑ¥¹œ€ô…Ý…¥Ð•Ñ±±M…µÁ±•Ì ¤ì4(€½¹ÍÐ½Õ¹Ð€ô•á¥ÍÑ¥¹œ¹™¥±Ñ•È¡Í…µÁ±”€ôøÍ…µÁ±”¹±½ÍÌ€ôôô±½ÍÌ¤¹±•¹Ñ ì4(€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôM…µÁ±•Ì…ÁÑÕÉ•è€‘í5…Ñ ¹µ¥¸¡½Õ¹Ð°M5A1M}AI}]=I¥ô€¼€‘íM5A1M}AI}]=Iõ€ì4(4(€¥˜€ …µ•‘¥…MÑÉ•…´¤ì4(€€€ÑÉäì4(€€€€€…Ý…¥ÐÍÑ…ÉÑ…µ•É„ ¤ì4(€€€ô…Ñ €¡•ÉÈ¤ì4(€€€€€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€…µ•É„Á•Éµ¥ÍÍ¥½¸¥ÌÉ•ÅÕ¥É•Ñ¼É•½ÉÍ…µÁ±•Ì¸œì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€ô4(€…±¥‰É…Ñ¥½¹Y¥‘•¼¹ÍÉ=‰©•Ð€ôµ•‘¥…MÑÉ•…´ì4(€…Ý…¥Ð•¹ÍÕÉ•I•½¹¥Ñ¥½¹¹¥¹” ¤¹Ñ¡•¸¡•¹¥¹”€ôø•¹¥¹”¹¥¹¥Ñ!…¹‘1…¹‘µ…É­•È ¤¤¹…Ñ   ¤€ôøì4(€€€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€!…¹É•½¹¥Ñ¥½¸Õ¹…Ù…¥±…‰±”ƒŠP…¹¹½Ð…ÁÑÕÉ”Í…µÁ±•ÌÉ¥¡Ð¹½Ü¸œì4(€ô¤ì4)ô4(4)…Íå¹Œ™Õ¹Ñ¥½¸…ÁÑÕÉ•M…µÁ±” ¤ì4(€¥˜€ …ÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ¤É•ÑÕÉ¸ì4(€½¹ÍÐ•¹¥¹”€ô…Ý…¥Ð•¹ÍÕÉ•I•½¹¥Ñ¥½¹¹¥¹” ¤ì4(€½¹ÍÐ±…¹‘µ…É­Ì€ô•¹¥¹”¹‘•Ñ•Ñ=¹”¡…±¥‰É…Ñ¥½¹Y¥‘•¼°Á•É™½Éµ…¹”¹¹½Ü ¤¤ì4(€¥˜€ …±…¹‘µ…É­Ì¤ì4(€€€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€9¼¡…¹‘•Ñ•Ñ•ƒŠP¡½±å½ÕÈÍ¥¸¥¸Ù¥•Ü…¹ÑÉä……¥¸¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(€½¹ÍÐ¹½Éµ…±¥é•€ô•¹¥¹”¹¹½Éµ…±¥é•1…¹‘µ…É­Ì¡±…¹‘µ…É­Ì¤ì4(€¥˜€ …¹½Éµ…±¥é•¤ì4(€€€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ô€½Õ±¹½ÐÉ•…¡…¹Á½Í”±•…É±äƒŠP…‘©ÕÍÐå½ÕÈ¡…¹…¹ÑÉä……¥¸¸œì4(€€€É•ÑÕÉ¸ì4(€ô4(€…Ý…¥Ð…‘‘M…µÁ±”¡ÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ°¹½Éµ…±¥é•¤ì4(€½¹ÍÐ•á¥ÍÑ¥¹œ€ô…Ý…¥Ð•Ñ±±M…µÁ±•Ì ¤ì4(€½¹ÍÐ½Õ¹Ð€ô•á¥ÍÑ¥¹œ¹™¥±Ñ•È¡Í…µÁ±”€ôøÍ…µÁ±”¹±½ÍÌ€ôôôÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ¤¹±•¹Ñ ì4(€…±¥‰É…Ñ¥½¹AÉ½É•ÍÌ¹Ñ•áÑ½¹Ñ•¹Ð€ôM…µÁ±•Ì…ÁÑÕÉ•è€‘í5…Ñ ¹µ¥¸¡½Õ¹Ð°M5A1M}AI}]=I¥ô€¼€‘íM5A1M}AI}]=Iõ€ì4)ô4(4)™Õ¹Ñ¥½¸±½Í•…±¥‰É…Ñ¥½¹¥…±½œ ¤ì4(€…±¥‰É…Ñ¥½¹¥…±½œ¹±½Í” ¤ì4(€…±¥‰É…Ñ¥½¹Y¥‘•¼¹ÍÉ=‰©•Ð€ô¹Õ±°ì4(€ÕÉÉ•¹Ñ…±¥‰É…Ñ¥½¹±½ÍÌ€ô¹Õ±°ì4(€¥˜€¡…Ñ¥Ù•A…¹•°€ôôô€ÔÈœ¤ÍÑ½Á…µ•É„ ¤ì4(€É•™É•Í¡…±¥‰É…Ñ¥½¹MÑ…ÑÕÌ ¤ì4)ô4(4(¼¼]¥É¥¹œ4(4)™Õ¹Ñ¥½¸½Á•¹AÉ…Ñ¥•EÕ¥è ¤ì4(€¡•É¼¹¡¥‘‘•¸€ôÑÉÕ”ì4(€¡…Ð¹¡¥‘‘•¸€ôÑÉÕ”ì4(€±•…É¹¥¹5½‘”¹¡¥‘‘•¸€ôÑÉÕ”ì4(€ÁÉ…Ñ¥•5½‘”¹¡¥‘‘•¸€ô™…±Í”ì4(€ÍÑ…ÉÑEÕ¥è ¤ì4(€…Ñ¥Ù…Ñ•AÉ…Ñ¥•Q…ˆ ÅÕ¥èœ¤ì4(€ÁÉ…Ñ¥•5½‘”¹ÍÉ½±±%¹Ñ½Y¥•Ü¡ì‰•¡…Ù¥½Èè€Íµ½½Ñ œ°‰±½¬è€ÍÑ…ÉÐœô¤ì4)ô4(4)ÁÉ…Ñ¥•5½‘•	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°½Á•¹AÉ…Ñ¥•EÕ¥è¤ì4)ÅÕ¥é1…Õ¹¡	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°½Á•¹AÉ…Ñ¥•EÕ¥è¤ì4(4)ÁÉ…Ñ¥•á¥Ñ	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøì4(€ÍÑ½Á…µ•É„ ¤ì4(€ÁÉ…Ñ¥•5½‘”¹¡¥‘‘•¸€ôÑÉÕ”ì4(€¡•É¼¹¡¥‘‘•¸€ô™…±Í”ì4(€¡…Ð¹¡¥‘‘•¸€ô™…±Í”ì4)ô¤ì4(4)ÅÕ¥éQ…ˆ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôø…Ñ¥Ù…Ñ•AÉ…Ñ¥•Q…ˆ ÅÕ¥èœ¤¤ì4)½¹Ù•ÉÍ…Ñ¥½¹Q…ˆ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôø…Ñ¥Ù…Ñ•AÉ…Ñ¥•Q…ˆ ½¹Ù•ÉÍ…Ñ¥½¸œ¤¤ì4)ÅÕ¥é9•áÑ	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøì4(€¥˜€¡ÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€ôôôEU%i}19Q €´€Ä¤ì4(€€€™¥¹¥Í¡EÕ¥è ¤ì4(€€€É•ÑÕÉ¸ì4(€ô4(€ÅÕ¥éEÕ•ÍÑ¥½¹%¹‘•à€¬ô€Äì4(€É•¹‘•ÉEÕ¥éEÕ•ÍÑ¥½¸ ¤ì4)ô¤ì4)ÅÕ¥éI•ÍÑ…ÉÑ	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°ÍÑ…ÉÑEÕ¥è¤ì4(4)Ñ½±•TÄ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÍ•ÑÑ¥Ù•A…¹•° ÔÄœ¤¤ì4)Ñ½±•TÈ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÍ•ÑÑ¥Ù•A…¹•° ÔÈœ¤¤ì4(4)ÍÑ…ÉÑ…µ•É…	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÍ•ÑÑ¥Ù•A…¹•° ÔÄœ¤¤ì4(4)ÔÅUÍ•]½É‘	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôø¡…¹‘±•TÅ]½É¡ÔÅ5…¹Õ…±]½É‘M•±•Ð¹Ù…±Õ”¤¤ì4(4)ÔÉM•¹‘	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°¡…¹‘±•TÉI•Á±ä¤ì4)ÔÉQ•áÑ%¹ÁÕÐ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ­•å‘½Ý¸œ°•Ù•¹Ð€ôøì4(€¥˜€ ¡•Ù•¹Ð¹ÑÉ±-•äñð•Ù•¹Ð¹µ•Ñ…-•ä¤€˜˜•Ù•¹Ð¹­•ä€ôôô€¹Ñ•Èœ¤¡…¹‘±•TÉI•Á±ä ¤ì4)ô¤ì4)ÔÉ5¥	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÍÑ…ÉÑ1¥ÍÑ•¹¥¹œ¡ì4(€¥¹ÁÕÐèÔÉQ•áÑ%¹ÁÕÐ°4(€µ¥	ÕÑÑ½¸èÔÉ5¥	ÕÑÑ½¸°4(€µ¥1…‰•°èÔÉ5¥1…‰•°°4(€É•Á±…å	ÕÑÑ½¸èÔÉI•Á±…åÕ‘¥½	ÕÑÑ½¸°4(€±…¹Õ…•M•±•ÐèÔÉ1…¹Õ…•M•±•Ð°4(€ÍÑ…ÑÕÍ°èÔÉMÑ…ÑÕÌ°4)ô¤¤ì4)ÔÉI•Á±…åÕ‘¥½	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôøÉ•Á±…åMÁ••¡Õ‘¥¼¡ÔÉQ•áÑ%¹ÁÕÐ°ÔÉMÑ…ÑÕÌ¤¤ì4)ÔÉ±•…ÉQ•áÑ	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°€ ¤€ôø±•…ÉMÁ••¡%¹ÁÕÐ¡ì4(€¥¹ÁÕÐèÔÉQ•áÑ%¹ÁÕÐ°4(€µ¥	ÕÑÑ½¸èÔÉ5¥	ÕÑÑ½¸°4(€µ¥1…‰•°èÔÉ5¥1…‰•°°4(€É•Á±…å	ÕÑÑ½¸èÔÉI•Á±…åÕ‘¥½	ÕÑÑ½¸°4(€ÍÑ…ÑÕÍ°èÔÉMÑ…ÑÕÌ°4)ô¤¤ì4(4)…±¥‰É…Ñ•	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°½Á•¹…±¥‰É…Ñ¥½¹¥…±½œ¤ì4)…±¥‰É…Ñ¥½¹±½Í•	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°±½Í•…±¥‰É…Ñ¥½¹¥…±½œ¤ì4)…ÁÑÕÉ•M…µÁ±•	ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°…ÁÑÕÉ•M…µÁ±”¤ì4(
